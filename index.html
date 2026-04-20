@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b141b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Abel Life OS" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png" />
+  <title>Abel Life OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b141b;
+      --bg-2: #0f1b24;
+      --panel: #142330;
+      --panel-2: #1a2f40;
+      --line: #264154;
+      --ink: #eef7ff;
+      --muted: #9bb4c8;
+      --brand: #ff7a3d;
+      --brand-2: #ff9f6f;
+      --ok: #45d18a;
+      --warn: #f7bf55;
+      --risk: #ff6f6f;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% -20%, #1c3244 0%, transparent 42%),
+        radial-gradient(circle at 98% 0%, #40251c 0%, transparent 35%),
+        linear-gradient(180deg, #0a1219 0%, #091018 100%);
+    }
+
+    .app {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 20px 14px 34px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px;
+      background: linear-gradient(120deg, #132432 0%, #182a38 52%, #2d241d 100%);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+      animation: rise 0.45s ease both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 860px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: #cce4f6;
+      border: 1px solid #35556b;
+      background: rgba(8, 14, 20, 0.55);
+      border-radius: 10px;
+      padding: 8px 10px;
+      height: fit-content;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: 1px solid #31516b;
+      background: rgba(7, 12, 18, 0.62);
+      padding: 5px 10px;
+      font-size: 12px;
+      color: #d4e9f8;
+    }
+
+    .tabs {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .tab {
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      background: #101b25;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 11px 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tab.active {
+      border-color: #8a4830;
+      background: linear-gradient(180deg, #3a251f 0%, #231f22 100%);
+      color: #ffe0d2;
+    }
+
+    .page {
+      display: none;
+      margin-top: 14px;
+      animation: rise 0.35s ease both;
+    }
+
+    .page.active { display: block; }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: linear-gradient(180deg, #13212d 0%, #111c27 100%);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-9 { grid-column: span 9; }
+    .span-12 { grid-column: span 12; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(5, 10, 16, 0.52);
+      padding: 10px;
+    }
+
+    .kpi strong {
+      font-size: 26px;
+      line-height: 1;
+      display: block;
+      margin-bottom: 5px;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi span { font-size: 11px; color: var(--muted); }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(8, 14, 20, 0.48);
+      padding: 10px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .sub {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge {
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid;
+      padding: 2px 8px;
+      white-space: nowrap;
+      height: fit-content;
+    }
+
+    .prio-high { color: #ffd0bd; border-color: #80452f; background: rgba(128, 69, 47, 0.2); }
+    .prio-mid { color: #ffe9bc; border-color: #80642f; background: rgba(128, 100, 47, 0.2); }
+    .prio-low { color: #cbf8dc; border-color: #2f7950; background: rgba(47, 121, 80, 0.2); }
+
+    .status-open { color: #bde0ff; border-color: #356084; background: rgba(53, 96, 132, 0.2); }
+    .status-doing { color: #fff0be; border-color: #836d2f; background: rgba(131, 109, 47, 0.2); }
+    .status-done { color: #c8ffe1; border-color: #2f7a53; background: rgba(47, 122, 83, 0.23); }
+
+    .critical-badge {
+      color: #ffd1d1;
+      border-color: #9a3434;
+      background: rgba(154, 52, 52, 0.28);
+    }
+
+    tr.critical-row td {
+      background: rgba(120, 28, 28, 0.18);
+    }
+
+    .critical-title {
+      color: #ffd7d7;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(4, 9, 14, 0.7);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress > span {
+      height: 100%;
+      display: block;
+      background: linear-gradient(90deg, #ff7a3d 0%, #ffb286 100%);
+      width: 0;
+      transition: width 0.25s ease;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .quad {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 120px;
+      background: rgba(5, 10, 16, 0.52);
+    }
+
+    .quad h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #bdd3e2;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0d1720;
+      color: var(--ink);
+      padding: 10px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    textarea { min-height: 88px; resize: vertical; }
+
+    .form-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .btn {
+      border: 1px solid #8b4f37;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #ff8653 0%, #e5663d 100%);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 10px;
+      font-family: inherit;
+    }
+
+    .btn.secondary {
+      border: 1px solid var(--line);
+      background: #121f2b;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 11px;
+      color: #b5cbdb;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .tiny {
+      border: 1px solid var(--line);
+      background: #0f1a24;
+      color: var(--ink);
+      border-radius: 8px;
+      font-size: 11px;
+      padding: 5px 7px;
+      cursor: pointer;
+    }
+
+    .tiny.on {
+      border-color: #9e583d;
+      color: #ffdcca;
+    }
+
+    .review-score {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin: 6px 0;
+    }
+
+    .hint {
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px dashed #355670;
+      color: #cbe5f6;
+      font-size: 12px;
+      background: rgba(7, 13, 19, 0.46);
+    }
+
+    .planner-board {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .week-planner-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .week-days {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .week-day {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(8, 14, 20, 0.45);
+      padding: 8px;
+      min-height: 210px;
+    }
+
+    .week-day.over {
+      border-color: #ff9a6e;
+      background: rgba(63, 35, 24, 0.45);
+    }
+
+    .week-day-head {
+      font-size: 11px;
+      color: #add0e6;
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+
+    .inline-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .planner-column {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(7, 12, 18, 0.45);
+      padding: 10px;
+      min-height: 320px;
+    }
+
+    .planner-column h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #c4d9e8;
+    }
+
+    .drag-task {
+      border: 1px solid #35566f;
+      border-radius: 10px;
+      background: #102130;
+      padding: 8px;
+      margin-bottom: 6px;
+      cursor: grab;
+    }
+
+    .drag-task .sub { margin-top: 2px; }
+
+    .time-slot {
+      border: 1px dashed #34556e;
+      border-radius: 10px;
+      padding: 8px;
+      margin-bottom: 6px;
+      min-height: 58px;
+      background: rgba(8, 14, 20, 0.45);
+      transition: 0.16s;
+    }
+
+    .time-slot.over {
+      border-color: #ff9a6e;
+      background: rgba(63, 35, 24, 0.45);
+    }
+
+    .slot-head {
+      font-size: 11px;
+      color: #9ec0d8;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .slot-empty {
+      font-size: 11px;
+      color: #7f9bb0;
+    }
+
+    .month-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .month-label {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .mini-btn {
+      border: 1px solid var(--line);
+      background: #102131;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .burn-row {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(7, 12, 18, 0.45);
+    }
+
+    .burn-bar {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(5, 9, 14, 0.75);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .burn-actual {
+      height: 100%;
+      background: linear-gradient(90deg, #ff7a3d 0%, #ffb286 100%);
+      display: block;
+      width: 0;
+    }
+
+    .burn-ideal {
+      height: 100%;
+      background: linear-gradient(90deg, #5ba1ff 0%, #9bc8ff 100%);
+      display: block;
+      width: 0;
+    }
+
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .risk { color: var(--risk); }
+
+    @media (max-width: 980px) {
+      .tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-9 { grid-column: span 12; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .week-days { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .split, .matrix { grid-template-columns: 1fr; }
+      .planner-board { grid-template-columns: 1fr; }
+      .week-days { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>Abel Life OS</h1>
+          <p>
+            Dein persoenliches Planungs-System ohne Notion: Praxisprojekt, Bachelorarbeit,
+            Mathe 2, Arbeit, Fussball und Foto-Auftraege in einer modernen Webapp mit lokaler Datenbank.
+          </p>
+        </div>
+        <div class="mono" id="heroMeta">Lade...</div>
+      </div>
+      <div class="chips">
+        <span class="chip" id="kwChip">KW --</span>
+        <span class="chip">Praxisprojekt Start: 06.04.2026</span>
+        <span class="chip">Betreuer: Prof. Dr. Konrad Foegen</span>
+        <span class="chip">Mathe 2 Klausur: 25.07.2026</span>
+      </div>
+    </section>
+
+    <section class="tabs" id="tabs">
+      <button class="tab active" data-page="dashboard">Dashboard</button>
+      <button class="tab" data-page="today">Today</button>
+      <button class="tab" data-page="week">Week</button>
+      <button class="tab" data-page="month">Month</button>
+      <button class="tab" data-page="tasks">Tasks</button>
+      <button class="tab" data-page="habits">Habits</button>
+      <button class="tab" data-page="review">Review</button>
+    </section>
+
+    <section class="page active" id="page-dashboard">
+      <div class="grid">
+        <article class="card span-12">
+          <h2>Command Center</h2>
+          <div class="kpi-grid">
+            <div class="kpi"><strong id="kpiOpen">0</strong><span>Open Tasks</span></div>
+            <div class="kpi"><strong id="kpiToday">0</strong><span>Heute geplant</span></div>
+            <div class="kpi"><strong id="kpiMathe">0</strong><span>Tage bis Mathe Klausur</span></div>
+            <div class="kpi"><strong id="kpiPhoto">0h</strong><span>Foto Stunden offen</span></div>
+          </div>
+        </article>
+
+        <article class="card span-7">
+          <h2>
+            Heute Agenda
+            <button class="btn secondary" id="btnRebuildToday">Auto-Plan</button>
+          </h2>
+          <div class="list" id="todayAgenda"></div>
+        </article>
+
+        <article class="card span-5">
+          <h2>Naechste kritische Termine</h2>
+          <div class="list" id="criticalList"></div>
+        </article>
+
+        <article class="card span-6">
+          <h2>Roadmap 2026</h2>
+          <div class="list" id="roadmapList"></div>
+        </article>
+
+        <article class="card span-6">
+          <h2>Top 6 Fokus Aufgaben</h2>
+          <div class="list" id="focusList"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-today">
+      <div class="grid">
+        <article class="card span-8">
+          <h2>Time Blocks</h2>
+          <table>
+            <thead>
+              <tr><th>Zeit</th><th>Block</th><th>Bereich</th><th>Prio</th></tr>
+            </thead>
+            <tbody id="timeBlockTable"></tbody>
+          </table>
+        </article>
+
+        <article class="card span-4">
+          <h2>Daily Target</h2>
+          <div class="item">
+            <div class="title">Mathe 2 Daily 3h</div>
+            <div class="sub">Nicht verhandelbar bis zur Klausur am 25.07.2026.</div>
+            <div class="progress"><span id="matheProgress"></span></div>
+            <div class="sub" id="matheProgressLabel">0 / 3h</div>
+          </div>
+          <div class="item" style="margin-top:8px;">
+            <div class="title">Praxisprojekt Deep Work</div>
+            <div class="sub">Minimum 2h pro Werktag (zus. zu Meetings und Pflichtterminen).</div>
+            <div class="progress"><span id="praxisProgress"></span></div>
+            <div class="sub" id="praxisProgressLabel">0 / 2h</div>
+          </div>
+        </article>
+
+        <article class="card span-12">
+          <h2>Eisenhower Matrix fuer heute</h2>
+          <div class="matrix">
+            <div class="quad"><h3>Wichtig + Dringend</h3><div class="list" id="q1"></div></div>
+            <div class="quad"><h3>Wichtig + Nicht dringend</h3><div class="list" id="q2"></div></div>
+            <div class="quad"><h3>Nicht wichtig + Dringend</h3><div class="list" id="q3"></div></div>
+            <div class="quad"><h3>Nicht wichtig + Nicht dringend</h3><div class="list" id="q4"></div></div>
+          </div>
+        </article>
+
+        <article class="card span-12" id="plannerBoard">
+          <h2>Drag-and-Drop Tageskalender</h2>
+          <div class="meta">Ziehe Aufgaben in Zeitslots. Wenn ein Mathe/Praxis-Block verpasst wird, verschiebt die App ihn automatisch auf den naechsten Tag.</div>
+          <div class="planner-board">
+            <div class="planner-column">
+              <h3>Unscheduled</h3>
+              <div id="unscheduledList"></div>
+            </div>
+            <div class="planner-column">
+              <h3>Zeitslots heute</h3>
+              <div id="daySlots"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-week">
+      <div class="grid">
+        <article class="card span-12">
+          <h2>Wochenplan (automatisch aus Regeln + Aufgaben)</h2>
+          <table>
+            <thead>
+              <tr><th>Tag</th><th>Slot</th><th>Eintrag</th><th>Bereich</th><th>Prio</th></tr>
+            </thead>
+            <tbody id="weekTable"></tbody>
+          </table>
+        </article>
+
+        <article class="card span-12" id="weekPlannerBoard">
+          <h2>
+            Wochen Drag-and-Drop Planung
+            <span class="inline-tools">
+              <button class="btn secondary" id="btnAutoBalanceWeek">Auto-Balance</button>
+              <span class="meta" id="weekAutoStatus"></span>
+            </span>
+          </h2>
+          <div class="meta">Ziehe offene Aufgaben in Mo-So. Diese Planung bleibt gespeichert und hilft dir beim realistischen Wochenfokus.</div>
+          <div class="week-planner-grid">
+            <div class="planner-column">
+              <h3>Wochen Backlog</h3>
+              <div id="weekBacklog"></div>
+            </div>
+            <div class="week-days" id="weekDays"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-month">
+      <div class="grid">
+        <article class="card span-12">
+          <h2>
+            Monatsansicht + Burn-down
+            <span class="month-head">
+              <button class="mini-btn" id="monthPrev">&lt;</button>
+              <span class="month-label" id="monthLabel">Monat</span>
+              <button class="mini-btn" id="monthNext">&gt;</button>
+            </span>
+          </h2>
+          <div class="list" id="burnList"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-tasks">
+      <div class="grid">
+        <article class="card span-12">
+          <h2>Task Input (lokale Datenbank)</h2>
+          <div class="form-grid">
+            <input id="inTitle" placeholder="Aufgabe" />
+            <select id="inArea">
+              <option>Praxisprojekt</option>
+              <option>Bachelorarbeit</option>
+              <option>Mathe 2</option>
+              <option>Vorlesung</option>
+              <option>Arbeit</option>
+              <option>Sport</option>
+              <option>Fotografie</option>
+            </select>
+            <input id="inDue" type="date" />
+            <select id="inPriority">
+              <option>Hoch</option>
+              <option>Mittel</option>
+              <option>Niedrig</option>
+            </select>
+            <select id="inEffort">
+              <option value="1">1h</option>
+              <option value="2">2h</option>
+              <option value="3">3h</option>
+              <option value="4">4h</option>
+            </select>
+            <button class="btn" id="btnAddTask">Task speichern</button>
+          </div>
+          <div class="hint" style="margin-top:8px;">Tip: Nutze fuer Mathe taeglich mindestens einen 3h-Task, damit dein Tagesplan automatisch sauber bleibt.</div>
+        </article>
+
+        <article class="card span-12">
+          <h2>
+            Task Board
+            <span class="inline-tools">
+              <button class="btn secondary" id="btnPresetFocus">Preset: Fokus</button>
+              <button class="btn secondary" id="btnPresetDeepWork">Preset: Deep Work</button>
+              <button class="btn secondary" id="btnPresetReview">Preset: Review</button>
+              <button class="btn secondary" id="btnToggleCriticalFilter">Only Critical: OFF</button>
+              <button class="btn secondary" id="btnToggleOpenFilter">Nur Offen: OFF</button>
+              <span class="meta" id="criticalFilterState">Zeigt alle Tasks</span>
+            </span>
+          </h2>
+          <table>
+            <thead>
+              <tr><th>Titel</th><th>Bereich</th><th>Faellig</th><th>Aufwand</th><th>Status</th><th>Prio</th><th>Aktion</th></tr>
+            </thead>
+            <tbody id="taskTable"></tbody>
+          </table>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-habits">
+      <div class="grid">
+        <article class="card span-7">
+          <h2>Habit Tracker</h2>
+          <div class="list" id="habitList"></div>
+        </article>
+
+        <article class="card span-5">
+          <h2>Score dieser Woche</h2>
+          <div class="review-score" id="habitScore">0%</div>
+          <div class="meta">Score basiert auf erledigten Habit-Checks dieser Kalenderwoche.</div>
+          <div class="progress"><span id="habitBar"></span></div>
+          <div class="hint" style="margin-top:10px;">
+            Fokus-Habits:
+            Mathe 3h taeglich, Praxisprojekt Deep Work, Tagesplanung morgens, Tagesreview abends.
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-review">
+      <div class="grid">
+        <article class="card span-6">
+          <h2>Weekly Review</h2>
+          <div class="split">
+            <textarea id="reviewGood" placeholder="Was lief gut?"></textarea>
+            <textarea id="reviewFix" placeholder="Was muss verbessert werden?"></textarea>
+          </div>
+          <textarea id="reviewNext" placeholder="Top 3 Prioritaeten fuer naechste Woche" style="margin-top:8px;"></textarea>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button class="btn" id="btnSaveReview">Review speichern</button>
+            <button class="btn secondary" id="btnLoadReview">Review laden</button>
+          </div>
+        </article>
+
+        <article class="card span-6">
+          <h2>Planner Coach</h2>
+          <div class="list" id="coachList"></div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const DB = "abel_life_os_db";
+    const VERSION = 1;
+
+    const stores = {
+      tasks: "tasks",
+      roadmap: "roadmap",
+      meetings: "meetings",
+      habits: "habits",
+      review: "review",
+      plans: "plans",
+      meta: "meta"
+    };
+
+    let db;
+    const state = {
+      tasks: [],
+      roadmap: [],
+      meetings: [],
+      habits: [],
+      review: { good: "", fix: "", next: "" },
+      plans: {},
+      monthOffset: 0,
+      taskFilterCriticalOnly: false,
+      taskFilterOpenOnly: false,
+      taskFilterAreas: []
+    };
+
+    const fixedSchedule = [
+      { title: "Mathe 2 Lernen", days: [0,1,2,3,4,5,6], start: "07:30", end: "10:30", area: "Mathe 2", priority: "Hoch" },
+      { title: "Praxisprojekt Hauptblock", days: [1,2,3,4,5], start: "09:00", end: "17:00", area: "Praxisprojekt", priority: "Hoch", until: "2026-06-21" },
+      { title: "Vorlesung + Praktikum Fuehrung in transformativen Zeiten", days: [1], start: "13:00", end: "17:00", area: "Vorlesung", priority: "Mittel", until: "2026-07-17" },
+      { title: "Mathe 2 Vorlesung/Hilfsstunde", days: [4], start: "12:00", end: "14:00", area: "Mathe 2", priority: "Hoch", until: "2026-07-25" },
+      { title: "Arbeit", days: [2,0], start: "17:00", end: "23:00", area: "Arbeit", priority: "Mittel" },
+      { title: "Fussball Training", days: [4], start: "17:30", end: "23:00", area: "Sport", priority: "Mittel" },
+      { title: "Fussball Spiel", days: [0], start: "13:00", end: "16:00", area: "Sport", priority: "Mittel" }
+    ];
+
+    const HARD_MAX_FOCUS_HOURS_PER_DAY = 6;
+
+    function todayISO() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function toDE(iso) {
+      if (!iso) return "-";
+      return new Date(iso + "T00:00:00").toLocaleDateString("de-DE");
+    }
+
+    function weekNumber(date = new Date()) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function daysBetween(a, b) {
+      const x = new Date(a + "T00:00:00");
+      const y = new Date(b + "T00:00:00");
+      return Math.ceil((y - x) / 86400000);
+    }
+
+    function badgePrio(p) {
+      if (p === "Hoch") return "prio-high";
+      if (p === "Mittel") return "prio-mid";
+      return "prio-low";
+    }
+
+    function badgeStatus(s) {
+      if (s === "Done") return "status-done";
+      if (s === "Doing") return "status-doing";
+      return "status-open";
+    }
+
+    async function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB, VERSION);
+        req.onupgradeneeded = (ev) => {
+          const d = ev.target.result;
+          Object.values(stores).forEach((name) => {
+            if (!d.objectStoreNames.contains(name)) {
+              d.createObjectStore(name, { keyPath: "id" });
+            }
+          });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function os(name, mode = "readonly") {
+      return db.transaction(name, mode).objectStore(name);
+    }
+
+    async function all(name) {
+      return new Promise((resolve, reject) => {
+        const req = os(name).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function put(name, value) {
+      return new Promise((resolve, reject) => {
+        const req = os(name, "readwrite").put(value);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function del(name, id) {
+      return new Promise((resolve, reject) => {
+        const req = os(name, "readwrite").delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function id() {
+      return (crypto.randomUUID ? crypto.randomUUID() : "id-" + Date.now() + "-" + Math.floor(Math.random() * 10000));
+    }
+
+    async function seedIfEmpty() {
+      const meta = await all(stores.meta);
+      if (meta.some((m) => m.id === "seeded")) return;
+
+      const roadmap = [
+        { id: id(), title: "Praxisprojekt (11 Wochen)", start: "2026-04-06", end: "2026-06-21", status: "laufend" },
+        { id: id(), title: "Zwischenpraesentation + Anmeldung Bachelorarbeit (2 Wochen)", start: "2026-06-22", end: "2026-07-05", status: "geplant" },
+        { id: id(), title: "Bachelorarbeit (9 Wochen)", start: "2026-07-06", end: "2026-09-06", status: "geplant" },
+        { id: id(), title: "Vorbereitung + Anmeldung Kolloquium (2 Wochen)", start: "2026-09-07", end: "2026-09-20", status: "geplant" }
+      ];
+
+      const meetings = [
+        { id: id(), date: "2026-04-24", start: "10:30", end: "11:00", title: "Betreuung Termin 2" },
+        { id: id(), date: "2026-05-08", start: "10:30", end: "11:00", title: "Betreuung Termin 3" },
+        { id: id(), date: "2026-05-22", start: "10:30", end: "11:00", title: "Betreuung Termin 4" },
+        { id: id(), date: "2026-06-05", start: "10:30", end: "11:00", title: "Betreuung Termin 5" },
+        { id: id(), date: "2026-06-19", start: "10:30", end: "11:00", title: "Betreuung Termin 6" }
+      ];
+
+      const initialTasks = [
+        { id: id(), title: "MCP Testlauf mit nopCommerce Docker", area: "Praxisprojekt", due: "2026-04-23", effort: 3, status: "To Do", priority: "Hoch" },
+        { id: id(), title: "Betreuung 24.04 vorbereiten", area: "Praxisprojekt", due: "2026-04-24", effort: 2, status: "To Do", priority: "Hoch" },
+        { id: id(), title: "Mathe: Induktion + Aufgaben", area: "Mathe 2", due: todayISO(), effort: 3, status: "Doing", priority: "Hoch" },
+        { id: id(), title: "Luli Wedding Video Schnitt", area: "Fotografie", due: "2026-04-26", effort: 4, status: "To Do", priority: "Hoch" },
+        { id: id(), title: "Mera Album bearbeiten", area: "Fotografie", due: "2026-04-27", effort: 2, status: "To Do", priority: "Mittel" },
+        { id: id(), title: "Koki Banner Final", area: "Fotografie", due: "2026-04-29", effort: 1, status: "To Do", priority: "Mittel" }
+      ];
+
+      const habits = [
+        { id: id(), name: "Mathe 3h", checks: {} },
+        { id: id(), name: "Praxisprojekt 2h Deep Work", checks: {} },
+        { id: id(), name: "Morgenplanung 10min", checks: {} },
+        { id: id(), name: "Abendreview 10min", checks: {} },
+        { id: id(), name: "30min Bewegung", checks: {} }
+      ];
+
+      for (const r of roadmap) await put(stores.roadmap, r);
+      for (const m of meetings) await put(stores.meetings, m);
+      for (const t of initialTasks) await put(stores.tasks, t);
+      for (const h of habits) await put(stores.habits, h);
+
+      await put(stores.review, { id: "weekly", good: "", fix: "", next: "" });
+      await put(stores.meta, { id: "seeded", at: new Date().toISOString() });
+    }
+
+    async function loadState() {
+      state.tasks = await all(stores.tasks);
+      state.roadmap = await all(stores.roadmap);
+      state.meetings = await all(stores.meetings);
+      state.habits = await all(stores.habits);
+      const metaRows = await all(stores.meta);
+      const filterMeta = metaRows.find((x) => x.id === "task-filters");
+      if (filterMeta) {
+        state.taskFilterCriticalOnly = Boolean(filterMeta.criticalOnly);
+        state.taskFilterOpenOnly = Boolean(filterMeta.openOnly);
+        state.taskFilterAreas = Array.isArray(filterMeta.areas) ? filterMeta.areas : [];
+      }
+      const planRows = await all(stores.plans);
+      state.plans = {};
+      planRows.forEach((row) => {
+        state.plans[row.id] = row.slots || {};
+      });
+      const reviewRows = await all(stores.review);
+      state.review = reviewRows.find((x) => x.id === "weekly") || { good: "", fix: "", next: "" };
+    }
+
+    async function persistTaskFilters() {
+      await put(stores.meta, {
+        id: "task-filters",
+        criticalOnly: state.taskFilterCriticalOnly,
+        openOnly: state.taskFilterOpenOnly,
+        areas: state.taskFilterAreas,
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    async function applyTaskFilterPreset(mode) {
+      if (mode === "focus") {
+        state.taskFilterCriticalOnly = true;
+        state.taskFilterOpenOnly = true;
+        state.taskFilterAreas = [];
+      } else if (mode === "deepwork") {
+        state.taskFilterCriticalOnly = false;
+        state.taskFilterOpenOnly = true;
+        state.taskFilterAreas = ["Praxisprojekt", "Mathe 2"];
+      } else {
+        state.taskFilterCriticalOnly = false;
+        state.taskFilterOpenOnly = false;
+        state.taskFilterAreas = [];
+      }
+      await persistTaskFilters();
+      renderTasksPage();
+    }
+
+    function plusDays(iso, delta) {
+      const d = new Date(iso + "T00:00:00");
+      d.setDate(d.getDate() + delta);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function mondayOfISO(iso) {
+      const d = new Date(iso + "T00:00:00");
+      const day = d.getDay();
+      const offset = day === 0 ? -6 : (1 - day);
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function isWeekdayISO(iso) {
+      const day = new Date(iso + "T00:00:00").getDay();
+      return day >= 1 && day <= 5;
+    }
+
+    async function applyAutoRules() {
+      const today = todayISO();
+      const yesterday = plusDays(today, -1);
+      const metaRows = await all(stores.meta);
+      const lastRun = metaRows.find((x) => x.id === "auto-rule-last");
+      if (lastRun && lastRun.date === today) return;
+
+      let changed = 0;
+      for (const t of state.tasks) {
+        if (t.status === "Done") continue;
+        if (t.due !== yesterday) continue;
+        if (!["Mathe 2", "Praxisprojekt", "Bachelorarbeit"].includes(t.area)) continue;
+
+        const targetDate = t.area === "Mathe 2" ? today : (isWeekdayISO(today) ? today : plusDays(today, 1));
+        t.due = targetDate;
+        if (t.area === "Mathe 2") t.priority = "Hoch";
+        if (!t.title.startsWith("[Auto] ")) t.title = "[Auto] " + t.title;
+        await put(stores.tasks, t);
+        changed += 1;
+      }
+
+      const matheToday = state.tasks
+        .filter((t) => t.area === "Mathe 2" && t.status !== "Done" && t.due === today)
+        .reduce((sum, t) => sum + Number(t.effort || 0), 0);
+
+      if (matheToday < 3) {
+        await put(stores.tasks, {
+          id: id(),
+          title: "[Auto] Mathe 2 Kompensationsblock",
+          area: "Mathe 2",
+          due: today,
+          priority: "Hoch",
+          effort: 3 - matheToday,
+          status: "To Do"
+        });
+        changed += 1;
+      }
+
+      await put(stores.meta, { id: "auto-rule-last", date: today, changes: changed, at: new Date().toISOString() });
+      if (changed > 0) await loadState();
+    }
+
+    function getDayPlan(iso) {
+      return state.plans[iso] || {};
+    }
+
+    async function saveDayPlan(iso, slots) {
+      state.plans[iso] = slots;
+      await put(stores.plans, { id: iso, slots });
+    }
+
+    function getWeekPlan(weekKey) {
+      return state.plans[weekKey] || {};
+    }
+
+    async function saveWeekPlan(weekKey, slots) {
+      state.plans[weekKey] = slots;
+      await put(stores.plans, { id: weekKey, slots });
+    }
+
+    function todayEvents() {
+      const today = new Date();
+      const iso = todayISO();
+      const day = today.getDay();
+
+      const list = [];
+      fixedSchedule.forEach((e) => {
+        if (!e.days.includes(day)) return;
+        if (e.until && iso > e.until) return;
+        list.push({ slot: e.start + " - " + e.end, title: e.title, area: e.area, priority: e.priority });
+      });
+
+      state.meetings.forEach((m) => {
+        if (m.date === iso) {
+          list.push({ slot: m.start + " - " + m.end, title: m.title, area: "Betreuung", priority: "Hoch" });
+        }
+      });
+
+      return list.sort((a, b) => a.slot.localeCompare(b.slot));
+    }
+
+    function weekDates() {
+      const now = new Date();
+      const day = now.getDay();
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      return Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        return d;
+      });
+    }
+
+    function currentWeekKey() {
+      const dates = weekDates();
+      const monday = dates[0].toISOString().slice(0, 10);
+      return "week-" + getIsoWeekKey(new Date(monday + "T00:00:00"));
+    }
+
+    function parseHour(time) {
+      if (!time || !time.includes(":")) return 0;
+      const [h, m] = time.split(":").map((v) => Number(v));
+      return h + (m / 60);
+    }
+
+    function getFixedHoursForDay(iso) {
+      const d = new Date(iso + "T00:00:00");
+      const day = d.getDay();
+      let hours = 0;
+
+      fixedSchedule.forEach((e) => {
+        if (!e.days.includes(day)) return;
+        if (e.until && iso > e.until) return;
+        hours += Math.max(0, parseHour(e.end) - parseHour(e.start));
+      });
+
+      state.meetings.forEach((m) => {
+        if (m.date === iso) {
+          hours += Math.max(0, parseHour(m.end) - parseHour(m.start));
+        }
+      });
+
+      return hours;
+    }
+
+    function isLowEnergyDay(iso) {
+      const d = new Date(iso + "T00:00:00");
+      const day = d.getDay();
+      return fixedSchedule.some((e) => {
+        if (!e.days.includes(day)) return false;
+        if (e.until && iso > e.until) return false;
+        const startHour = parseHour(e.start);
+        const heavyEveningType = e.area === "Arbeit" || e.area === "Sport";
+        return heavyEveningType && startHour >= 17;
+      });
+    }
+
+    function isHeavyTask(task) {
+      return task && task.priority === "Hoch" && Number(task.effort || 1) >= 3;
+    }
+
+    function getDayTaskLoad(weekPlan, iso) {
+      const ids = weekPlan[iso] || [];
+      return ids
+        .map((taskId) => state.tasks.find((t) => t.id === taskId))
+        .filter(Boolean)
+        .reduce((sum, t) => sum + Number(t.effort || 1), 0);
+    }
+
+    function pickRecoveryDay(dates, plan, today, due) {
+      const possible = dates.filter((iso) => {
+        if (iso < today) return false;
+        if (due && iso > due) return false;
+        const load = getDayTaskLoad(plan, iso);
+        return (load + 1) <= HARD_MAX_FOCUS_HOURS_PER_DAY;
+      });
+      if (!possible.length) return null;
+
+      let bestDay = possible[0];
+      let bestLoad = getDayTaskLoad(plan, bestDay);
+      possible.forEach((iso) => {
+        const load = getDayTaskLoad(plan, iso);
+        if (load < bestLoad) {
+          bestLoad = load;
+          bestDay = iso;
+        }
+      });
+      return bestDay;
+    }
+
+    function getHighTaskCount(weekPlan, iso) {
+      const ids = weekPlan[iso] || [];
+      return ids
+        .map((taskId) => state.tasks.find((t) => t.id === taskId))
+        .filter(Boolean)
+        .filter((t) => t.priority === "Hoch")
+        .length;
+    }
+
+    function baseFocusCapacity(iso) {
+      const d = new Date(iso + "T00:00:00");
+      const day = d.getDay();
+      if (day === 0) return 2;
+      if (day === 6) return 4;
+      if (day === 4) return 3;
+      return 5;
+    }
+
+    function eventsForDate(iso) {
+      const d = new Date(iso + "T00:00:00");
+      const day = d.getDay();
+      const list = [];
+
+      fixedSchedule.forEach((e) => {
+        if (!e.days.includes(day)) return;
+        if (e.until && iso > e.until) return;
+        list.push({ slot: e.start + " - " + e.end, title: e.title, area: e.area, priority: e.priority });
+      });
+
+      state.meetings.forEach((m) => {
+        if (m.date === iso) {
+          list.push({ slot: m.start + " - " + m.end, title: m.title, area: "Betreuung", priority: "Hoch" });
+        }
+      });
+
+      const dueTasks = state.tasks.filter((t) => t.status !== "Done" && t.due === iso);
+      dueTasks.forEach((t, i) => {
+        list.push({
+          slot: "Task " + (i + 1),
+          title: t.title,
+          area: t.area,
+          priority: t.priority
+        });
+      });
+
+      return list.sort((a, b) => a.slot.localeCompare(b.slot));
+    }
+
+    function getPhotoHoursOpen() {
+      const photo = state.tasks.filter((t) => t.area === "Fotografie" && t.status !== "Done");
+      return photo.reduce((sum, t) => sum + Number(t.effort || 0), 0);
+    }
+
+    function hasConsecutiveRecoveryWeeks(taskId) {
+      const recoveryMondays = Array.from(new Set(
+        state.tasks
+          .filter((t) => t.recoveryOf === taskId)
+          .filter((t) => t.due)
+          .map((t) => mondayOfISO(t.due))
+      )).sort();
+
+      if (recoveryMondays.length < 2) return false;
+      for (let i = 0; i < recoveryMondays.length - 1; i += 1) {
+        const gap = daysBetween(recoveryMondays[i], recoveryMondays[i + 1]);
+        if (gap === 7) return true;
+      }
+      return false;
+    }
+
+    async function applyCriticalEscalation() {
+      let escalated = 0;
+      for (const task of state.tasks) {
+        if (task.status === "Done") continue;
+        if (task.recoveryOf) continue;
+        if (!isHeavyTask(task)) continue;
+
+        const shouldBeCritical = hasConsecutiveRecoveryWeeks(task.id);
+        const isCritical = Boolean(task.critical);
+        if (isCritical === shouldBeCritical) continue;
+
+        task.critical = shouldBeCritical;
+        task.criticalReason = shouldBeCritical ? "2 Wochen hintereinander nur Recovery" : "";
+        await put(stores.tasks, task);
+        escalated += shouldBeCritical ? 1 : 0;
+      }
+      return escalated;
+    }
+
+    function topFocusTasks(limit = 6) {
+      const open = state.tasks.filter((t) => t.status !== "Done");
+      open.sort((a, b) => {
+        if (Boolean(a.critical) !== Boolean(b.critical)) return Boolean(b.critical) - Boolean(a.critical);
+        const prio = { Hoch: 0, Mittel: 1, Niedrig: 2 };
+        if (prio[a.priority] !== prio[b.priority]) return prio[a.priority] - prio[b.priority];
+        const ad = a.due || "9999-12-31";
+        const bd = b.due || "9999-12-31";
+        return ad.localeCompare(bd);
+      });
+      return open.slice(0, limit);
+    }
+
+    function renderHeader() {
+      const now = new Date();
+      document.getElementById("heroMeta").textContent =
+        "FH Aachen | Informatik | Abel Berhane 3274586 | " +
+        now.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+      document.getElementById("kwChip").textContent = "KW " + weekNumber(now);
+    }
+
+    function renderDashboard() {
+      const openCount = state.tasks.filter((t) => t.status !== "Done").length;
+      const todayDue = state.tasks.filter((t) => t.status !== "Done" && t.due === todayISO()).length;
+      const daysToMathe = daysBetween(todayISO(), "2026-07-25");
+      const photoHours = getPhotoHoursOpen();
+
+      document.getElementById("kpiOpen").textContent = openCount;
+      document.getElementById("kpiToday").textContent = todayDue;
+      document.getElementById("kpiMathe").textContent = Math.max(0, daysToMathe);
+      document.getElementById("kpiPhoto").textContent = photoHours + "h";
+
+      const agenda = document.getElementById("todayAgenda");
+      agenda.innerHTML = "";
+      todayEvents().forEach((e) => {
+        agenda.insertAdjacentHTML("beforeend", `
+          <div class="item">
+            <div class="row">
+              <div>
+                <div class="title">${e.slot} - ${e.title}</div>
+                <div class="sub">${e.area}</div>
+              </div>
+              <span class="badge ${badgePrio(e.priority)}">${e.priority}</span>
+            </div>
+          </div>
+        `);
+      });
+
+      const crit = document.getElementById("criticalList");
+      crit.innerHTML = "";
+      const critical = [];
+      state.tasks
+        .filter((t) => t.status !== "Done" && t.critical)
+        .slice(0, 3)
+        .forEach((t) => {
+          critical.push({ label: "KRITISCH: " + t.title, meta: t.criticalReason || "Eskalation aktiv", score: -100 });
+        });
+      state.meetings.forEach((m) => {
+        const d = daysBetween(todayISO(), m.date);
+        if (d >= 0 && d <= 21) critical.push({ label: m.title, meta: toDE(m.date) + " | " + m.start + "-" + m.end, score: d });
+      });
+      critical.push({ label: "Mathe 2 Klausur", meta: toDE("2026-07-25") + " | letzter Versuch", score: daysBetween(todayISO(), "2026-07-25") });
+      critical.sort((a, b) => a.score - b.score).slice(0, 5).forEach((x) => {
+        crit.insertAdjacentHTML("beforeend", `<div class="item"><div class="title">${x.label}</div><div class="sub">${x.meta}</div></div>`);
+      });
+
+      const roadmap = document.getElementById("roadmapList");
+      roadmap.innerHTML = "";
+      state.roadmap.sort((a, b) => a.start.localeCompare(b.start)).forEach((r) => {
+        roadmap.insertAdjacentHTML("beforeend", `<div class="item"><div class="title">${r.title}</div><div class="sub">${toDE(r.start)} - ${toDE(r.end)} | ${r.status}</div></div>`);
+      });
+
+      const focus = document.getElementById("focusList");
+      focus.innerHTML = "";
+      topFocusTasks(6).forEach((t) => {
+        focus.insertAdjacentHTML("beforeend", `
+          <div class="item">
+            <div class="row">
+              <div>
+                <div class="title">${t.title}</div>
+                <div class="sub">${t.area} | ${toDE(t.due)} | ${t.effort || 1}h${t.critical ? " | KRITISCH" : ""}</div>
+              </div>
+              <span class="badge ${badgePrio(t.priority)}">${t.priority}</span>
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    function renderTodayPage() {
+      const tbody = document.getElementById("timeBlockTable");
+      tbody.innerHTML = "";
+      todayEvents().forEach((e) => {
+        tbody.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>${e.slot}</td>
+            <td>${e.title}</td>
+            <td>${e.area}</td>
+            <td><span class="badge ${badgePrio(e.priority)}">${e.priority}</span></td>
+          </tr>
+        `);
+      });
+
+      const today = todayISO();
+      const matheHours = state.tasks
+        .filter((t) => t.area === "Mathe 2" && t.status !== "Done" && t.due === today)
+        .reduce((sum, t) => sum + Number(t.effort || 0), 0);
+      const praxisHours = state.tasks
+        .filter((t) => t.area === "Praxisprojekt" && t.status !== "Done" && t.due === today)
+        .reduce((sum, t) => sum + Number(t.effort || 0), 0);
+
+      const mathePct = Math.min(100, Math.round((matheHours / 3) * 100));
+      const praxisPct = Math.min(100, Math.round((praxisHours / 2) * 100));
+      document.getElementById("matheProgress").style.width = mathePct + "%";
+      document.getElementById("matheProgressLabel").textContent = matheHours + " / 3h";
+      document.getElementById("praxisProgress").style.width = praxisPct + "%";
+      document.getElementById("praxisProgressLabel").textContent = praxisHours + " / 2h";
+
+      const buckets = { q1: [], q2: [], q3: [], q4: [] };
+      topFocusTasks(12).forEach((t) => {
+        const days = t.due ? daysBetween(todayISO(), t.due) : 99;
+        const urgent = days <= 2;
+        const important = t.priority === "Hoch";
+        if (important && urgent) buckets.q1.push(t);
+        if (important && !urgent) buckets.q2.push(t);
+        if (!important && urgent) buckets.q3.push(t);
+        if (!important && !urgent) buckets.q4.push(t);
+      });
+
+      ["q1", "q2", "q3", "q4"].forEach((k) => {
+        const el = document.getElementById(k);
+        el.innerHTML = "";
+        if (!buckets[k].length) {
+          el.innerHTML = '<div class="sub">Leer</div>';
+          return;
+        }
+        buckets[k].slice(0, 4).forEach((t) => {
+          el.insertAdjacentHTML("beforeend", `<div class="item"><div class="title">${t.title}</div><div class="sub">${t.area} | ${toDE(t.due)}</div></div>`);
+        });
+      });
+
+      renderPlannerBoard(today);
+    }
+
+    function renderPlannerBoard(dayIso) {
+      const unscheduled = document.getElementById("unscheduledList");
+      const daySlots = document.getElementById("daySlots");
+      if (!unscheduled || !daySlots) return;
+
+      const plan = getDayPlan(dayIso);
+      const assignedIds = new Set(Object.values(plan));
+      const unscheduledTasks = state.tasks
+        .filter((t) => t.status !== "Done")
+        .filter((t) => (t.due && t.due <= plusDays(dayIso, 2)) || t.priority === "Hoch")
+        .filter((t) => !assignedIds.has(t.id))
+        .slice(0, 14);
+
+      unscheduled.innerHTML = "";
+      if (!unscheduledTasks.length) {
+        unscheduled.innerHTML = '<div class="slot-empty">Keine offenen Fokus-Aufgaben.</div>';
+      }
+      unscheduledTasks.forEach((t) => {
+        unscheduled.insertAdjacentHTML("beforeend", `
+          <div class="drag-task" draggable="true" data-task-id="${t.id}">
+            <div class="title">${t.title}</div>
+            <div class="sub">${t.area} | ${toDE(t.due)} | ${t.effort || 1}h</div>
+          </div>
+        `);
+      });
+
+      daySlots.innerHTML = "";
+      for (let hour = 6; hour <= 22; hour += 1) {
+        const h = String(hour).padStart(2, "0") + ":00";
+        const assignedId = plan[h];
+        const task = state.tasks.find((x) => x.id === assignedId);
+        daySlots.insertAdjacentHTML("beforeend", `
+          <div class="time-slot" data-time="${h}">
+            <div class="slot-head">${h}</div>
+            ${task ? `
+              <div class="drag-task" draggable="true" data-task-id="${task.id}" data-source-slot="${h}">
+                <div class="title">${task.title}</div>
+                <div class="sub">${task.area} | ${task.effort || 1}h
+                  <button class="mini-btn" data-unslot="${h}" style="margin-left:6px;">x</button>
+                </div>
+              </div>
+            ` : '<div class="slot-empty">Drop Task hier</div>'}
+          </div>
+        `);
+      }
+    }
+
+    function renderWeekPage() {
+      const tbody = document.getElementById("weekTable");
+      tbody.innerHTML = "";
+      const names = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+      weekDates().forEach((d) => {
+        const iso = d.toISOString().slice(0, 10);
+        const entries = eventsForDate(iso);
+        entries.forEach((e) => {
+          tbody.insertAdjacentHTML("beforeend", `
+            <tr>
+              <td>${names[d.getDay()]} ${toDE(iso)}</td>
+              <td>${e.slot}</td>
+              <td>${e.title}</td>
+              <td>${e.area}</td>
+              <td><span class="badge ${badgePrio(e.priority)}">${e.priority}</span></td>
+            </tr>
+          `);
+        });
+      });
+
+      renderWeekPlanner();
+    }
+
+    function renderWeekPlanner() {
+      const weekBacklog = document.getElementById("weekBacklog");
+      const weekDays = document.getElementById("weekDays");
+      if (!weekBacklog || !weekDays) return;
+
+      const dates = weekDates();
+      const weekKey = currentWeekKey();
+      const plan = getWeekPlan(weekKey);
+
+      const assigned = new Set();
+      Object.values(plan).forEach((arr) => (arr || []).forEach((taskId) => assigned.add(taskId)));
+
+      const backlogTasks = state.tasks
+        .filter((t) => t.status !== "Done")
+        .filter((t) => !assigned.has(t.id))
+        .filter((t) => {
+          if (!t.due) return true;
+          const dueDate = new Date(t.due + "T00:00:00");
+          const weekEnd = dates[6];
+          return dueDate <= weekEnd;
+        })
+        .slice(0, 20);
+
+      weekBacklog.innerHTML = "";
+      if (!backlogTasks.length) {
+        weekBacklog.innerHTML = '<div class="slot-empty">Backlog leer fuer diese Woche.</div>';
+      }
+      backlogTasks.forEach((t) => {
+        weekBacklog.insertAdjacentHTML("beforeend", `
+          <div class="drag-task" draggable="true" data-task-id="${t.id}" data-week="1">
+            <div class="title">${t.title}</div>
+            <div class="sub">${t.area} | ${toDE(t.due)} | ${t.effort || 1}h</div>
+          </div>
+        `);
+      });
+
+      weekDays.innerHTML = "";
+      const labels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+      dates.forEach((d, idx) => {
+        const dayIso = d.toISOString().slice(0, 10);
+        const dayTasks = plan[dayIso] || [];
+        const lowEnergy = isLowEnergyDay(dayIso);
+        const fixedHours = getFixedHoursForDay(dayIso);
+        const cap = baseFocusCapacity(dayIso);
+        const highCount = getHighTaskCount(plan, dayIso);
+        const load = dayTasks
+          .map((taskId) => state.tasks.find((x) => x.id === taskId))
+          .filter(Boolean)
+          .reduce((sum, t) => sum + Number(t.effort || 1), 0);
+        const left = Math.max(0, cap - load);
+        const hardLeft = Math.max(0, HARD_MAX_FOCUS_HOURS_PER_DAY - load);
+        const cards = dayTasks
+          .map((taskId) => state.tasks.find((x) => x.id === taskId))
+          .filter(Boolean)
+          .map((t) => `
+            <div class="drag-task" draggable="true" data-task-id="${t.id}" data-week="1" data-source-day="${dayIso}">
+              <div class="title">${t.title}</div>
+              <div class="sub">${t.area} | ${t.effort || 1}h
+                <button class="mini-btn" data-week-unslot="${dayIso}" data-task-id="${t.id}" style="margin-left:6px;">x</button>
+              </div>
+            </div>
+          `)
+          .join("");
+
+        weekDays.insertAdjacentHTML("beforeend", `
+          <div class="week-day" data-week-day="${dayIso}">
+            <div class="week-day-head">${labels[idx]} ${toDE(dayIso)}</div>
+            <div class="sub">Fix ${fixedHours.toFixed(1)}h | Fokus ${load}/${cap}h | Frei ${left}h | Hard ${hardLeft}/${HARD_MAX_FOCUS_HOURS_PER_DAY}h | High ${highCount}/2${lowEnergy ? " | Low-Energy" : ""}</div>
+            ${cards || '<div class="slot-empty">Drop Task hier</div>'}
+          </div>
+        `);
+      });
+    }
+
+    async function autoBalanceWeekPlan() {
+      const weekKey = currentWeekKey();
+      const dates = weekDates().map((d) => d.toISOString().slice(0, 10));
+      const weekEnd = dates[6];
+      const today = todayISO();
+      const plan = { ...getWeekPlan(weekKey) };
+
+      const assigned = new Set();
+      Object.values(plan).forEach((arr) => (arr || []).forEach((taskId) => assigned.add(taskId)));
+
+      const candidates = state.tasks
+        .filter((t) => t.status !== "Done")
+        .filter((t) => !assigned.has(t.id))
+        .filter((t) => !t.due || t.due <= weekEnd)
+        .sort((a, b) => {
+          const prio = { Hoch: 0, Mittel: 1, Niedrig: 2 };
+          if (prio[a.priority] !== prio[b.priority]) return prio[a.priority] - prio[b.priority];
+          const ad = a.due || "9999-12-31";
+          const bd = b.due || "9999-12-31";
+          return ad.localeCompare(bd);
+        });
+
+      let placed = 0;
+      let recoveryPlaced = 0;
+
+      for (const task of candidates) {
+        const effort = Number(task.effort || 1);
+        const possible = dates.filter((iso) => {
+          if (iso < today) return false;
+          if (task.due && iso > task.due) return false;
+          if (["Praxisprojekt", "Bachelorarbeit"].includes(task.area)) {
+            const day = new Date(iso + "T00:00:00").getDay();
+            return day >= 1 && day <= 5;
+          }
+          return true;
+        });
+
+        if (!possible.length) continue;
+
+        let bestDay = null;
+        let bestScore = -999;
+
+        possible.forEach((iso) => {
+          const cap = baseFocusCapacity(iso);
+          const load = getDayTaskLoad(plan, iso);
+          const highCount = getHighTaskCount(plan, iso);
+          const free = cap - load;
+          const dueDistance = task.due ? Math.abs(daysBetween(iso, task.due)) : 5;
+
+          if (task.priority === "Hoch" && highCount >= 2) return;
+          if ((load + effort) > HARD_MAX_FOCUS_HOURS_PER_DAY) return;
+          if (isHeavyTask(task) && isLowEnergyDay(iso)) return;
+
+          let score = (free * 3) - dueDistance;
+          if (task.area === "Mathe 2") score += 2;
+          if (task.priority === "Hoch") score += 2;
+          if (free < effort) score -= 10;
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestDay = iso;
+          }
+        });
+
+        if (!bestDay) continue;
+        const next = plan[bestDay] || [];
+        next.push(task.id);
+        plan[bestDay] = next;
+        placed += 1;
+      }
+
+      for (const task of candidates) {
+        const alreadyAssigned = Object.values(plan).some((arr) => (arr || []).includes(task.id));
+        if (alreadyAssigned) continue;
+        if (!isHeavyTask(task)) continue;
+
+        const hasRecovery = state.tasks.some((t) => t.recoveryOf === task.id && t.status !== "Done");
+        if (hasRecovery) continue;
+
+        const recoveryDay = pickRecoveryDay(dates, plan, today, task.due);
+        if (!recoveryDay) continue;
+
+        const recoveryTask = {
+          id: id(),
+          title: `[Recovery] 30-60min Vorbereitung: ${task.title}`,
+          area: task.area,
+          due: recoveryDay,
+          priority: "Mittel",
+          effort: 1,
+          status: "To Do",
+          recoveryOf: task.id,
+          autoGenerated: true
+        };
+
+        await put(stores.tasks, recoveryTask);
+        state.tasks.push(recoveryTask);
+        const next = plan[recoveryDay] || [];
+        next.push(recoveryTask.id);
+        plan[recoveryDay] = next;
+        recoveryPlaced += 1;
+      }
+
+      const escalatedNow = await applyCriticalEscalation();
+
+      await saveWeekPlan(weekKey, plan);
+      const status = document.getElementById("weekAutoStatus");
+      if (status) status.textContent = `Auto-Balance: ${placed} Aufgaben verteilt, ${recoveryPlaced} Recovery-Aufgaben erstellt, ${escalatedNow} kritisch markiert`;
+      renderWeekPage();
+    }
+
+    function renderTasksPage() {
+      const tbody = document.getElementById("taskTable");
+      const filterState = document.getElementById("criticalFilterState");
+      const filterBtn = document.getElementById("btnToggleCriticalFilter");
+      const openFilterBtn = document.getElementById("btnToggleOpenFilter");
+      tbody.innerHTML = "";
+      if (filterBtn) {
+        filterBtn.textContent = state.taskFilterCriticalOnly ? "Only Critical: ON" : "Only Critical: OFF";
+      }
+      if (openFilterBtn) {
+        openFilterBtn.textContent = state.taskFilterOpenOnly ? "Nur Offen: ON" : "Nur Offen: OFF";
+      }
+      if (filterState) {
+        const totalCritical = state.tasks.filter((t) => t.critical && t.status !== "Done").length;
+        if (state.taskFilterCriticalOnly && state.taskFilterOpenOnly) {
+          filterState.textContent = `Nur kritische + offene Tasks sichtbar (${totalCritical} offen)`;
+        } else if (state.taskFilterAreas.length > 0 && state.taskFilterOpenOnly) {
+          filterState.textContent = `Deep Work: offene Tasks in ${state.taskFilterAreas.join(" + ")}`;
+        } else if (state.taskFilterCriticalOnly) {
+          filterState.textContent = `Nur kritische Tasks sichtbar (${totalCritical} offen)`;
+        } else if (state.taskFilterOpenOnly) {
+          filterState.textContent = "Nur offene Tasks sichtbar";
+        } else {
+          filterState.textContent = "Zeigt alle Tasks";
+        }
+      }
+
+      const rows = state.tasks.filter((t) => {
+        if (state.taskFilterCriticalOnly && !t.critical) return false;
+        if (state.taskFilterOpenOnly && t.status === "Done") return false;
+        if (state.taskFilterAreas.length > 0 && !state.taskFilterAreas.includes(t.area)) return false;
+        return true;
+      });
+
+      rows
+        .sort((a, b) => (a.due || "9999-12-31").localeCompare(b.due || "9999-12-31"))
+        .forEach((t) => {
+          tbody.insertAdjacentHTML("beforeend", `
+            <tr class="${t.critical ? "critical-row" : ""}">
+              <td>
+                <div class="${t.critical ? "critical-title" : ""}">${t.title}</div>
+                ${t.critical ? `<div class="sub">${t.criticalReason || "Kritische Eskalation aktiv"}</div>` : ""}
+              </td>
+              <td>${t.area}</td>
+              <td>${toDE(t.due)}</td>
+              <td>${t.effort || 1}h</td>
+              <td><span class="badge ${badgeStatus(t.status)}">${t.status}</span></td>
+              <td>
+                <span class="badge ${badgePrio(t.priority)}">${t.priority}</span>
+                ${t.critical ? '<span class="badge critical-badge" style="margin-left:6px;">CRITICAL</span>' : ""}
+              </td>
+              <td>
+                <div class="action-group">
+                  <button class="tiny ${t.status === "To Do" ? "on" : ""}" data-id="${t.id}" data-a="todo">ToDo</button>
+                  <button class="tiny ${t.status === "Doing" ? "on" : ""}" data-id="${t.id}" data-a="doing">Doing</button>
+                  <button class="tiny ${t.status === "Done" ? "on" : ""}" data-id="${t.id}" data-a="done">Done</button>
+                  <button class="tiny" data-id="${t.id}" data-a="delete">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="sub">Keine Aufgaben fuer den aktuellen Filter.</td></tr>';
+      }
+    }
+
+    function monthBaseDate() {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() + state.monthOffset);
+      return d;
+    }
+
+    function renderMonthPage() {
+      const base = monthBaseDate();
+      const year = base.getFullYear();
+      const month = base.getMonth();
+      const start = new Date(year, month, 1);
+      const end = new Date(year, month + 1, 0);
+      const label = start.toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+      document.getElementById("monthLabel").textContent = label;
+
+      const relevantMathe = state.tasks.filter((t) => t.area === "Mathe 2" && t.due && t.due <= end.toISOString().slice(0, 10));
+      const relevantBachelor = state.tasks.filter((t) => ["Praxisprojekt", "Bachelorarbeit"].includes(t.area) && t.due && t.due <= end.toISOString().slice(0, 10));
+
+      const weeks = [];
+      let cursor = new Date(start);
+      while (cursor <= end) {
+        const wEnd = new Date(cursor);
+        wEnd.setDate(Math.min(cursor.getDate() + 6, end.getDate()));
+        weeks.push({
+          from: cursor.toISOString().slice(0, 10),
+          to: wEnd.toISOString().slice(0, 10)
+        });
+        cursor.setDate(cursor.getDate() + 7);
+      }
+
+      const burnList = document.getElementById("burnList");
+      burnList.innerHTML = "";
+
+      function buildRows(labelName, source) {
+        const total = source.length || 1;
+        weeks.forEach((w, idx) => {
+          const doneCount = source.filter((t) => t.status === "Done" && t.due <= w.to).length;
+          const openCount = Math.max(0, total - doneCount);
+          const idealRemaining = Math.max(0, Math.round(total - ((idx + 1) / weeks.length) * total));
+          const actualPct = Math.round((openCount / total) * 100);
+          const idealPct = Math.round((idealRemaining / total) * 100);
+
+          burnList.insertAdjacentHTML("beforeend", `
+            <div class="burn-row">
+              <div class="row">
+                <div class="title">${labelName} | Woche ${idx + 1} (${toDE(w.from)} - ${toDE(w.to)})</div>
+                <div class="sub">Offen ${openCount} | Ideal ${idealRemaining}</div>
+              </div>
+              <div class="burn-bar"><span class="burn-actual" style="width:${actualPct}%;"></span></div>
+              <div class="sub">Actual remaining</div>
+              <div class="burn-bar"><span class="burn-ideal" style="width:${idealPct}%;"></span></div>
+              <div class="sub">Ideal remaining</div>
+            </div>
+          `);
+        });
+      }
+
+      buildRows("Mathe 2", relevantMathe);
+      buildRows("Bachelor/Praxis", relevantBachelor);
+    }
+
+    function getIsoWeekKey(date = new Date()) {
+      return date.getFullYear() + "-W" + String(weekNumber(date)).padStart(2, "0");
+    }
+
+    function renderHabitsPage() {
+      const habitList = document.getElementById("habitList");
+      habitList.innerHTML = "";
+      const today = todayISO();
+      const weekKey = getIsoWeekKey(new Date());
+      let checksDone = 0;
+      let checksTotal = 0;
+
+      state.habits.forEach((h) => {
+        const done = Boolean(h.checks[today]);
+        habitList.insertAdjacentHTML("beforeend", `
+          <div class="item">
+            <div class="row">
+              <div>
+                <div class="title">${h.name}</div>
+                <div class="sub">Heute: ${done ? "Erledigt" : "Offen"}</div>
+              </div>
+              <button class="btn secondary" data-habit-id="${h.id}">${done ? "Undo" : "Check"}</button>
+            </div>
+          </div>
+        `);
+
+        Object.keys(h.checks).forEach((d) => {
+          const wk = getIsoWeekKey(new Date(d + "T00:00:00"));
+          if (wk === weekKey) {
+            checksTotal += 1;
+            if (h.checks[d]) checksDone += 1;
+          }
+        });
+      });
+
+      if (checksTotal === 0) checksTotal = state.habits.length * 7;
+      const score = Math.round((checksDone / checksTotal) * 100);
+      document.getElementById("habitScore").textContent = score + "%";
+      document.getElementById("habitBar").style.width = score + "%";
+    }
+
+    function renderReviewPage() {
+      document.getElementById("reviewGood").value = state.review.good || "";
+      document.getElementById("reviewFix").value = state.review.fix || "";
+      document.getElementById("reviewNext").value = state.review.next || "";
+
+      const coach = document.getElementById("coachList");
+      coach.innerHTML = "";
+
+      const openHigh = state.tasks.filter((t) => t.status !== "Done" && t.priority === "Hoch").length;
+      const openPhoto = state.tasks.filter((t) => t.status !== "Done" && t.area === "Fotografie").length;
+      const matheToday = state.tasks.filter((t) => t.area === "Mathe 2" && t.due === todayISO() && t.status !== "Done").reduce((s, t) => s + Number(t.effort || 0), 0);
+
+      const tips = [];
+      if (matheToday < 3) tips.push({ tone: "warn", msg: "Heute fehlen noch Mathe-Stunden. Plane sofort einen zusaetzlichen 1-2h Block." });
+      if (openHigh > 8) tips.push({ tone: "risk", msg: "Zu viele High-Priority Tasks offen. Reduziere aktiv auf maximal 5 gleichzeitig." });
+      if (openPhoto > 4) tips.push({ tone: "warn", msg: "Foto-Backlog ist hoch. Fixiere 2 feste Slots diese Woche fuer Schnitt/Bearbeitung." });
+      tips.push({ tone: "ok", msg: "Jeden Sonntag 30 Minuten Weekly Review beibehalten. Das ist dein Stabilitaetshebel." });
+
+      tips.forEach((t) => {
+        coach.insertAdjacentHTML("beforeend", `<div class="item"><div class="sub ${t.tone}">${t.msg}</div></div>`);
+      });
+    }
+
+    function renderAll() {
+      renderHeader();
+      renderDashboard();
+      renderTodayPage();
+      renderWeekPage();
+      renderMonthPage();
+      renderTasksPage();
+      renderHabitsPage();
+      renderReviewPage();
+    }
+
+    async function addTask() {
+      const title = document.getElementById("inTitle").value.trim();
+      const area = document.getElementById("inArea").value;
+      const due = document.getElementById("inDue").value || todayISO();
+      const priority = document.getElementById("inPriority").value;
+      const effort = Number(document.getElementById("inEffort").value || 1);
+      if (!title) return;
+
+      const task = { id: id(), title, area, due, priority, effort, status: "To Do" };
+      await put(stores.tasks, task);
+      document.getElementById("inTitle").value = "";
+      document.getElementById("inDue").value = "";
+      await loadState();
+      renderAll();
+    }
+
+    async function updateTaskStatus(taskId, status) {
+      const t = state.tasks.find((x) => x.id === taskId);
+      if (!t) return;
+      t.status = status;
+      await put(stores.tasks, t);
+      await loadState();
+      renderAll();
+    }
+
+    async function deleteTask(taskId) {
+      await del(stores.tasks, taskId);
+      await loadState();
+      renderAll();
+    }
+
+    async function toggleHabit(habitId) {
+      const h = state.habits.find((x) => x.id === habitId);
+      if (!h) return;
+      const key = todayISO();
+      h.checks[key] = !h.checks[key];
+      await put(stores.habits, h);
+      await loadState();
+      renderHabitsPage();
+      renderReviewPage();
+    }
+
+    async function saveReview() {
+      const row = {
+        id: "weekly",
+        good: document.getElementById("reviewGood").value,
+        fix: document.getElementById("reviewFix").value,
+        next: document.getElementById("reviewNext").value
+      };
+      await put(stores.review, row);
+      await loadState();
+      renderReviewPage();
+    }
+
+    function bindUI() {
+      document.getElementById("tabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("button.tab");
+        if (!btn) return;
+        document.querySelectorAll(".tab").forEach((x) => x.classList.remove("active"));
+        btn.classList.add("active");
+
+        const page = btn.dataset.page;
+        document.querySelectorAll(".page").forEach((x) => x.classList.remove("active"));
+        const node = document.getElementById("page-" + page);
+        if (node) node.classList.add("active");
+      });
+
+      document.getElementById("btnAddTask").addEventListener("click", addTask);
+      document.getElementById("btnRebuildToday").addEventListener("click", () => {
+        renderDashboard();
+        renderTodayPage();
+      });
+
+      document.getElementById("taskTable").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-id]");
+        if (!b) return;
+        const idVal = b.dataset.id;
+        const action = b.dataset.a;
+        if (action === "todo") await updateTaskStatus(idVal, "To Do");
+        if (action === "doing") await updateTaskStatus(idVal, "Doing");
+        if (action === "done") await updateTaskStatus(idVal, "Done");
+        if (action === "delete") await deleteTask(idVal);
+      });
+
+      document.getElementById("btnToggleCriticalFilter").addEventListener("click", async () => {
+        state.taskFilterCriticalOnly = !state.taskFilterCriticalOnly;
+        if (state.taskFilterCriticalOnly) state.taskFilterAreas = [];
+        await persistTaskFilters();
+        renderTasksPage();
+      });
+
+      document.getElementById("btnToggleOpenFilter").addEventListener("click", async () => {
+        state.taskFilterOpenOnly = !state.taskFilterOpenOnly;
+        if (!state.taskFilterOpenOnly) state.taskFilterAreas = [];
+        await persistTaskFilters();
+        renderTasksPage();
+      });
+
+      document.getElementById("btnPresetFocus").addEventListener("click", async () => {
+        await applyTaskFilterPreset("focus");
+      });
+
+      document.getElementById("btnPresetDeepWork").addEventListener("click", async () => {
+        await applyTaskFilterPreset("deepwork");
+      });
+
+      document.getElementById("btnPresetReview").addEventListener("click", async () => {
+        await applyTaskFilterPreset("review");
+      });
+
+      document.getElementById("plannerBoard").addEventListener("dragstart", (e) => {
+        const card = e.target.closest(".drag-task[data-task-id]");
+        if (!card) return;
+        const payload = {
+          taskId: card.dataset.taskId,
+          sourceSlot: card.dataset.sourceSlot || ""
+        };
+        e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+      });
+
+      document.getElementById("plannerBoard").addEventListener("dragover", (e) => {
+        const slot = e.target.closest(".time-slot");
+        if (!slot) return;
+        e.preventDefault();
+        slot.classList.add("over");
+      });
+
+      document.getElementById("plannerBoard").addEventListener("dragleave", (e) => {
+        const slot = e.target.closest(".time-slot");
+        if (!slot) return;
+        slot.classList.remove("over");
+      });
+
+      document.getElementById("plannerBoard").addEventListener("drop", async (e) => {
+        const slot = e.target.closest(".time-slot");
+        if (!slot) return;
+        e.preventDefault();
+        slot.classList.remove("over");
+
+        const raw = e.dataTransfer.getData("text/plain");
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        const time = slot.dataset.time;
+        const today = todayISO();
+        const plan = { ...getDayPlan(today) };
+        if (data.sourceSlot) delete plan[data.sourceSlot];
+        plan[time] = data.taskId;
+        await saveDayPlan(today, plan);
+        renderTodayPage();
+      });
+
+      document.getElementById("plannerBoard").addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-unslot]");
+        if (!btn) return;
+        const today = todayISO();
+        const plan = { ...getDayPlan(today) };
+        delete plan[btn.dataset.unslot];
+        await saveDayPlan(today, plan);
+        renderTodayPage();
+      });
+
+      document.getElementById("weekPlannerBoard").addEventListener("dragstart", (e) => {
+        const card = e.target.closest(".drag-task[data-week='1'][data-task-id]");
+        if (!card) return;
+        const payload = {
+          taskId: card.dataset.taskId,
+          sourceDay: card.dataset.sourceDay || ""
+        };
+        e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+      });
+
+      document.getElementById("weekPlannerBoard").addEventListener("dragover", (e) => {
+        const dayBox = e.target.closest(".week-day[data-week-day]");
+        if (!dayBox) return;
+        e.preventDefault();
+        dayBox.classList.add("over");
+      });
+
+      document.getElementById("weekPlannerBoard").addEventListener("dragleave", (e) => {
+        const dayBox = e.target.closest(".week-day[data-week-day]");
+        if (!dayBox) return;
+        dayBox.classList.remove("over");
+      });
+
+      document.getElementById("weekPlannerBoard").addEventListener("drop", async (e) => {
+        const dayBox = e.target.closest(".week-day[data-week-day]");
+        if (!dayBox) return;
+        e.preventDefault();
+        dayBox.classList.remove("over");
+
+        const raw = e.dataTransfer.getData("text/plain");
+        if (!raw) return;
+        const data = JSON.parse(raw);
+
+        const weekKey = currentWeekKey();
+        const plan = { ...getWeekPlan(weekKey) };
+        const targetDay = dayBox.dataset.weekDay;
+        const task = state.tasks.find((t) => t.id === data.taskId);
+        const taskEffort = Number((task && task.effort) || 1);
+        const targetLoad = getDayTaskLoad(plan, targetDay);
+
+        if (task && task.priority === "Hoch") {
+          const targetHighCount = getHighTaskCount(plan, targetDay);
+          const sameDayMove = data.sourceDay && data.sourceDay === targetDay;
+          if (targetHighCount >= 2 && !sameDayMove) {
+            const status = document.getElementById("weekAutoStatus");
+            if (status) status.textContent = "Regel aktiv: Maximal 2 High-Priority Aufgaben pro Tag.";
+            return;
+          }
+        }
+
+        if (task) {
+          const sameDayMove = data.sourceDay && data.sourceDay === targetDay;
+          const projectedLoad = sameDayMove ? targetLoad : (targetLoad + taskEffort);
+          if (projectedLoad > HARD_MAX_FOCUS_HOURS_PER_DAY) {
+            const status = document.getElementById("weekAutoStatus");
+            if (status) status.textContent = "Regel aktiv: Maximal 6 Fokusstunden pro Tag.";
+            return;
+          }
+
+          if (isHeavyTask(task) && isLowEnergyDay(targetDay)) {
+            const status = document.getElementById("weekAutoStatus");
+            if (status) status.textContent = "Energie-Regel aktiv: Schwere Tasks nicht an Arbeit/Sport-Abenden.";
+            return;
+          }
+        }
+
+        Object.keys(plan).forEach((key) => {
+          plan[key] = (plan[key] || []).filter((taskId) => taskId !== data.taskId);
+        });
+
+        const arr = plan[targetDay] || [];
+        if (!arr.includes(data.taskId)) arr.push(data.taskId);
+        plan[targetDay] = arr;
+
+        await saveWeekPlan(weekKey, plan);
+        renderWeekPage();
+      });
+
+      document.getElementById("weekPlannerBoard").addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-week-unslot][data-task-id]");
+        if (!btn) return;
+
+        const weekKey = currentWeekKey();
+        const plan = { ...getWeekPlan(weekKey) };
+        const day = btn.dataset.weekUnslot;
+        const taskId = btn.dataset.taskId;
+
+        plan[day] = (plan[day] || []).filter((idVal) => idVal !== taskId);
+        await saveWeekPlan(weekKey, plan);
+        renderWeekPage();
+      });
+
+      document.getElementById("btnAutoBalanceWeek").addEventListener("click", autoBalanceWeekPlan);
+
+      document.getElementById("habitList").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-habit-id]");
+        if (!b) return;
+        await toggleHabit(b.dataset.habitId);
+      });
+
+      document.getElementById("btnSaveReview").addEventListener("click", saveReview);
+      document.getElementById("btnLoadReview").addEventListener("click", async () => {
+        await loadState();
+        renderReviewPage();
+      });
+
+      document.getElementById("monthPrev").addEventListener("click", () => {
+        state.monthOffset -= 1;
+        renderMonthPage();
+      });
+
+      document.getElementById("monthNext").addEventListener("click", () => {
+        state.monthOffset += 1;
+        renderMonthPage();
+      });
+    }
+
+    async function registerServiceWorker() {
+      if (!("serviceWorker" in navigator)) return;
+      try {
+        await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+      } catch (err) {
+        console.warn("Service Worker konnte nicht registriert werden.", err);
+      }
+    }
+
+    async function init() {
+      await registerServiceWorker();
+      db = await openDatabase();
+      await seedIfEmpty();
+      await loadState();
+      await applyAutoRules();
+      bindUI();
+      renderAll();
+    }
+
+    init().catch((err) => {
+      console.error(err);
+      alert("Fehler beim Laden der App.");
+    });
+  </script>
+</body>
+</html>

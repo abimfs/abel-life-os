@@ -1,0 +1,18 @@
+{
+  "name": "Abel Life OS",
+  "short_name": "Life OS",
+  "description": "Dein persoenliches Life Dashboard - Tasks, Studium, Fotografie",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b141b",
+  "theme_color": "#0b141b",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icons/apple-touch-icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
