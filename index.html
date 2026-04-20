@@ -846,6 +846,14 @@
         <article class="card span-6">
           <h2>Planner Coach</h2>
           <div class="list" id="coachList"></div>
+          <div class="hint" style="margin-top:10px;">
+            Backup:
+            <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn secondary" id="btnExportBackup">Daten exportieren</button>
+              <button class="btn secondary" id="btnImportBackup">Backup importieren</button>
+              <input type="file" id="inBackupFile" accept="application/json" style="display:none;" />
+            </div>
+          </div>
         </article>
       </div>
     </section>
@@ -968,6 +976,79 @@
         req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);
       });
+    }
+
+    async function clearStore(name) {
+      return new Promise((resolve, reject) => {
+        const req = os(name, "readwrite").clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function exportBackup() {
+      const payload = {
+        app: "Abel Life OS",
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        data: {
+          tasks: await all(stores.tasks),
+          roadmap: await all(stores.roadmap),
+          meetings: await all(stores.meetings),
+          habits: await all(stores.habits),
+          review: await all(stores.review),
+          plans: await all(stores.plans),
+          meta: await all(stores.meta)
+        }
+      };
+
+      const text = JSON.stringify(payload, null, 2);
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "abel-life-os-backup-" + todayISO() + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function importBackupFile(file) {
+      if (!file) return;
+      const raw = await file.text();
+
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (err) {
+        alert("Backup-Datei ist kein gueltiges JSON.");
+        return;
+      }
+
+      if (!parsed || !parsed.data) {
+        alert("Backup-Format ungueltig.");
+        return;
+      }
+
+      const backup = parsed.data;
+      const storeNames = Object.values(stores);
+
+      for (const name of storeNames) {
+        await clearStore(name);
+      }
+
+      for (const row of (backup.tasks || [])) await put(stores.tasks, row);
+      for (const row of (backup.roadmap || [])) await put(stores.roadmap, row);
+      for (const row of (backup.meetings || [])) await put(stores.meetings, row);
+      for (const row of (backup.habits || [])) await put(stores.habits, row);
+      for (const row of (backup.review || [])) await put(stores.review, row);
+      for (const row of (backup.plans || [])) await put(stores.plans, row);
+      for (const row of (backup.meta || [])) await put(stores.meta, row);
+
+      await loadState();
+      renderAll();
+      alert("Backup erfolgreich importiert.");
     }
 
     function id() {
@@ -2214,6 +2295,16 @@
       document.getElementById("btnLoadReview").addEventListener("click", async () => {
         await loadState();
         renderReviewPage();
+      });
+
+      document.getElementById("btnExportBackup").addEventListener("click", exportBackup);
+      document.getElementById("btnImportBackup").addEventListener("click", () => {
+        document.getElementById("inBackupFile").click();
+      });
+      document.getElementById("inBackupFile").addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        await importBackupFile(file);
+        e.target.value = "";
       });
 
       document.getElementById("monthPrev").addEventListener("click", () => {
