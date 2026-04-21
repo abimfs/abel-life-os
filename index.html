@@ -648,6 +648,107 @@
           <h2>Top 6 Fokus Aufgaben</h2>
           <div class="list" id="focusList"></div>
         </article>
+
+        <article class="card span-6">
+          <h2>Bachelorarbeit Profil</h2>
+          <div class="list">
+            <div class="item"><div class="title">Evaluation KI-basierter End-to-End (E2E) Tests mit MCP</div><div class="sub">FH Aachen | Informatik | Autor: Abel Berhane (3274586)</div></div>
+            <div class="item"><div class="title">Betreuer: Prof. Dr. Konrad Foegen</div><div class="sub">Start Praxisprojekt: 06.04.2026 | NopCommerce mit Docker</div></div>
+            <div class="item"><div class="title">Mathe 2 Themenplan</div><div class="sub"><a href="https://www.fh-aachen.de/menschen/hoever/lehrveranstaltungen/hoehere-mathematik-2-fuer-informatik-und-wirtschaftsinformatik/wochenplaene" target="_blank" rel="noopener">Wochenplaene (FH Aachen)</a></div></div>
+          </div>
+        </article>
+
+        <article class="card span-6">
+          <h2>
+            Benachrichtigungen
+            <span class="inline-tools">
+              <button class="btn secondary" id="btnEnableNotify">Browser Benachrichtigung</button>
+              <span class="meta" id="notifyStatus">Nicht aktiviert</span>
+            </span>
+          </h2>
+          <div class="hint">Bei Aktivierung erinnert dich die App taeglich an Mathe 2 und zeigt wichtige Termine/Deadlines als Browser-Hinweis.</div>
+        </article>
+
+        <article class="card span-12">
+          <h2>
+            Plan Admin (klickbar bearbeitbar)
+            <span class="inline-tools">
+              <button class="btn secondary" id="btnResetAbelData">Meine Daten neu eintragen</button>
+              <span class="meta" id="planAdminStatus">Alle Aenderungen werden in der Datenbank gespeichert.</span>
+            </span>
+          </h2>
+
+          <div class="hint" style="margin-bottom:8px;">Wenn sich dein Plan aendert: Eintrag anklicken, bearbeiten, speichern. Tage im Wochenblock als Zahlen 0-6 (So=0, Mo=1, ..., Sa=6), z. B. 1,2,3,4,5.</div>
+
+          <div class="form-grid" style="margin-bottom:8px;">
+            <input id="inRecurringTitle" placeholder="Wochenblock Titel" />
+            <input id="inRecurringDays" placeholder="Tage z.B. 1,2,3,4,5" />
+            <input id="inRecurringStart" type="time" />
+            <input id="inRecurringEnd" type="time" />
+            <input id="inRecurringUntil" type="date" />
+            <select id="inRecurringArea">
+              <option>Praxisprojekt</option>
+              <option>Bachelorarbeit</option>
+              <option>Mathe 2</option>
+              <option>Vorlesung</option>
+              <option>Arbeit</option>
+              <option>Sport</option>
+              <option>Fotografie</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+            <select id="inRecurringPriority" style="max-width:180px;">
+              <option>Hoch</option>
+              <option>Mittel</option>
+              <option>Niedrig</option>
+            </select>
+            <button class="btn" id="btnSaveRecurring">Wochenblock speichern</button>
+            <button class="btn secondary" id="btnCancelRecurringEdit">Abbrechen</button>
+            <input id="inRecurringEditId" type="hidden" />
+          </div>
+          <table>
+            <thead>
+              <tr><th>Titel</th><th>Tage</th><th>Zeit</th><th>Bereich</th><th>Bis</th><th>Prio</th><th>Aktion</th></tr>
+            </thead>
+            <tbody id="recurringAdminTable"></tbody>
+          </table>
+
+          <div class="form-grid" style="margin-top:12px; margin-bottom:8px;">
+            <input id="inMeetingTitle" placeholder="Termin Titel" />
+            <input id="inMeetingDate" type="date" />
+            <input id="inMeetingStart" type="time" />
+            <input id="inMeetingEnd" type="time" />
+            <button class="btn" id="btnSaveMeeting">Termin speichern</button>
+            <button class="btn secondary" id="btnCancelMeetingEdit">Abbrechen</button>
+            <input id="inMeetingEditId" type="hidden" />
+          </div>
+          <table>
+            <thead>
+              <tr><th>Titel</th><th>Datum</th><th>Zeit</th><th>Aktion</th></tr>
+            </thead>
+            <tbody id="meetingAdminTable"></tbody>
+          </table>
+
+          <div class="form-grid" style="margin-top:12px; margin-bottom:8px;">
+            <input id="inRoadmapTitle" placeholder="Roadmap Phase" />
+            <input id="inRoadmapStart" type="date" />
+            <input id="inRoadmapEnd" type="date" />
+            <select id="inRoadmapStatus">
+              <option>laufend</option>
+              <option>geplant</option>
+              <option>abgeschlossen</option>
+            </select>
+            <button class="btn" id="btnSaveRoadmap">Roadmap speichern</button>
+            <button class="btn secondary" id="btnCancelRoadmapEdit">Abbrechen</button>
+            <input id="inRoadmapEditId" type="hidden" />
+          </div>
+          <table>
+            <thead>
+              <tr><th>Phase</th><th>Start</th><th>Ende</th><th>Status</th><th>Aktion</th></tr>
+            </thead>
+            <tbody id="roadmapAdminTable"></tbody>
+          </table>
+        </article>
       </div>
     </section>
 
@@ -780,9 +881,18 @@
               <option value="2">2h</option>
               <option value="3">3h</option>
               <option value="4">4h</option>
+              <option value="5">5h</option>
+              <option value="6">6h</option>
+              <option value="10">10h</option>
+              <option value="15">15h</option>
             </select>
             <button class="btn" id="btnAddTask">Task speichern</button>
           </div>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+            <button class="btn secondary" id="btnCancelTaskEdit">Task Edit abbrechen</button>
+            <span class="meta" id="taskEditState">Neuer Task</span>
+          </div>
+          <input id="inTaskEditId" type="hidden" />
           <div class="hint" style="margin-top:8px;">Tip: Nutze fuer Mathe taeglich mindestens einen 3h-Task, damit dein Tagesplan automatisch sauber bleibt.</div>
         </article>
 
@@ -878,6 +988,7 @@
       tasks: [],
       roadmap: [],
       meetings: [],
+      fixedSchedule: [],
       habits: [],
       review: { good: "", fix: "", next: "" },
       plans: {},
@@ -887,15 +998,57 @@
       taskFilterAreas: []
     };
 
-    const fixedSchedule = [
-      { title: "Mathe 2 Lernen", days: [0,1,2,3,4,5,6], start: "07:30", end: "10:30", area: "Mathe 2", priority: "Hoch" },
-      { title: "Praxisprojekt Hauptblock", days: [1,2,3,4,5], start: "09:00", end: "17:00", area: "Praxisprojekt", priority: "Hoch", until: "2026-06-21" },
-      { title: "Vorlesung + Praktikum Fuehrung in transformativen Zeiten", days: [1], start: "13:00", end: "17:00", area: "Vorlesung", priority: "Mittel", until: "2026-07-17" },
-      { title: "Mathe 2 Vorlesung/Hilfsstunde", days: [4], start: "12:00", end: "14:00", area: "Mathe 2", priority: "Hoch", until: "2026-07-25" },
-      { title: "Arbeit", days: [2,0], start: "17:00", end: "23:00", area: "Arbeit", priority: "Mittel" },
-      { title: "Fussball Training", days: [4], start: "17:30", end: "23:00", area: "Sport", priority: "Mittel" },
-      { title: "Fussball Spiel", days: [0], start: "13:00", end: "16:00", area: "Sport", priority: "Mittel" }
-    ];
+    const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+    function abelPlanTemplate() {
+      return {
+        fixedSchedule: [
+          { id: id(), title: "Mathe 2 Lernen + Ueben", days: [0, 1, 2, 3, 4, 5, 6], start: "07:30", end: "10:30", area: "Mathe 2", priority: "Hoch", until: "2026-07-25" },
+          { id: id(), title: "Praxisprojekt (NopCommerce Docker + MCP)", days: [1, 2, 3, 4, 5], start: "09:00", end: "17:00", area: "Praxisprojekt", priority: "Hoch", until: "2026-06-21" },
+          { id: id(), title: "Vorlesung + Praktikum Fuehrung in transformativen Zeiten", days: [1], start: "13:00", end: "17:00", area: "Vorlesung", priority: "Mittel", until: "2026-07-17" },
+          { id: id(), title: "Mathe 2 Vorlesung/Hilfsstunde", days: [4], start: "12:00", end: "14:00", area: "Mathe 2", priority: "Hoch", until: "2026-07-25" },
+          { id: id(), title: "Arbeit", days: [2, 0], start: "17:00", end: "23:00", area: "Arbeit", priority: "Mittel" },
+          { id: id(), title: "Fussball Training", days: [4], start: "17:30", end: "23:00", area: "Sport", priority: "Mittel" },
+          { id: id(), title: "Fussball Spiel", days: [0], start: "13:00", end: "16:00", area: "Sport", priority: "Mittel" }
+        ],
+        roadmap: [
+          { id: id(), title: "Praxisprojekt (11 Wochen)", start: "2026-04-06", end: "2026-06-21", status: "laufend" },
+          { id: id(), title: "Zwischenpraesentation + Anmeldung Bachelorarbeit (2 Wochen)", start: "2026-06-22", end: "2026-07-05", status: "geplant" },
+          { id: id(), title: "Bachelorarbeit (9 Wochen)", start: "2026-07-06", end: "2026-09-06", status: "geplant" },
+          { id: id(), title: "Vorbereitung + Anmeldung Kolloquium (2 Wochen)", start: "2026-09-07", end: "2026-09-20", status: "geplant" }
+        ],
+        meetings: [
+          { id: id(), date: "2026-04-24", start: "10:30", end: "11:00", title: "Betreuungstermin" },
+          { id: id(), date: "2026-05-08", start: "10:30", end: "11:00", title: "Betreuungstermin" },
+          { id: id(), date: "2026-05-22", start: "10:30", end: "11:00", title: "Betreuungstermin" },
+          { id: id(), date: "2026-06-05", start: "10:30", end: "11:00", title: "Betreuungstermin" },
+          { id: id(), date: "2026-06-19", start: "10:30", end: "11:00", title: "Betreuungstermin" }
+        ],
+        tasks: [
+          { id: id(), title: "MCP Testlauf mit nopCommerce Docker", area: "Praxisprojekt", due: "2026-04-23", effort: 3, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Betreuungstermin 24.04 vorbereiten", area: "Praxisprojekt", due: "2026-04-24", effort: 2, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mathe: Induktion", area: "Mathe 2", due: todayISO(), effort: 3, status: "Doing", priority: "Hoch" },
+          { id: id(), title: "Mathe: Relationen + Funktionen im Mehrdimensionalen", area: "Mathe 2", due: plusDays(todayISO(), 1), effort: 3, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mathe: partielle Ableitung, Gradient, Jacobi-Matrix", area: "Mathe 2", due: plusDays(todayISO(), 2), effort: 3, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mathe: DGL, Euler- und Heun-Verfahren", area: "Mathe 2", due: plusDays(todayISO(), 3), effort: 3, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mathe: Fourier-Reihen und DFT", area: "Mathe 2", due: plusDays(todayISO(), 4), effort: 3, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mathe: Binomial, Kombinatorik, Wahrscheinlichkeit, Statistik", area: "Mathe 2", due: plusDays(todayISO(), 5), effort: 3, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mera Wedding Video", area: "Fotografie", due: plusDays(todayISO(), 10), effort: 10, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Mera Wedding Album", area: "Fotografie", due: plusDays(todayISO(), 12), effort: 3, status: "To Do", priority: "Mittel" },
+          { id: id(), title: "Koki Wedding Stand-up Banner", area: "Fotografie", due: plusDays(todayISO(), 13), effort: 2, status: "To Do", priority: "Mittel" },
+          { id: id(), title: "Teame Taufe", area: "Fotografie", due: plusDays(todayISO(), 14), effort: 6, status: "To Do", priority: "Mittel" },
+          { id: id(), title: "Luli Wedding", area: "Fotografie", due: plusDays(todayISO(), 16), effort: 15, status: "To Do", priority: "Hoch" },
+          { id: id(), title: "Abi Wedding Video anpassen", area: "Fotografie", due: plusDays(todayISO(), 17), effort: 2, status: "To Do", priority: "Mittel" }
+        ],
+        habits: [
+          { id: id(), name: "Mathe 3h", checks: {} },
+          { id: id(), name: "Praxisprojekt 2h Deep Work", checks: {} },
+          { id: id(), name: "Morgenplanung 10min", checks: {} },
+          { id: id(), name: "Abendreview 10min", checks: {} },
+          { id: id(), name: "30min Bewegung", checks: {} }
+        ]
+      };
+    }
 
     const HARD_MAX_FOCUS_HOURS_PER_DAY = 6;
 
@@ -1059,45 +1212,38 @@
       const meta = await all(stores.meta);
       if (meta.some((m) => m.id === "seeded")) return;
 
-      const roadmap = [
-        { id: id(), title: "Praxisprojekt (11 Wochen)", start: "2026-04-06", end: "2026-06-21", status: "laufend" },
-        { id: id(), title: "Zwischenpraesentation + Anmeldung Bachelorarbeit (2 Wochen)", start: "2026-06-22", end: "2026-07-05", status: "geplant" },
-        { id: id(), title: "Bachelorarbeit (9 Wochen)", start: "2026-07-06", end: "2026-09-06", status: "geplant" },
-        { id: id(), title: "Vorbereitung + Anmeldung Kolloquium (2 Wochen)", start: "2026-09-07", end: "2026-09-20", status: "geplant" }
-      ];
+      const setup = abelPlanTemplate();
 
-      const meetings = [
-        { id: id(), date: "2026-04-24", start: "10:30", end: "11:00", title: "Betreuung Termin 2" },
-        { id: id(), date: "2026-05-08", start: "10:30", end: "11:00", title: "Betreuung Termin 3" },
-        { id: id(), date: "2026-05-22", start: "10:30", end: "11:00", title: "Betreuung Termin 4" },
-        { id: id(), date: "2026-06-05", start: "10:30", end: "11:00", title: "Betreuung Termin 5" },
-        { id: id(), date: "2026-06-19", start: "10:30", end: "11:00", title: "Betreuung Termin 6" }
-      ];
-
-      const initialTasks = [
-        { id: id(), title: "MCP Testlauf mit nopCommerce Docker", area: "Praxisprojekt", due: "2026-04-23", effort: 3, status: "To Do", priority: "Hoch" },
-        { id: id(), title: "Betreuung 24.04 vorbereiten", area: "Praxisprojekt", due: "2026-04-24", effort: 2, status: "To Do", priority: "Hoch" },
-        { id: id(), title: "Mathe: Induktion + Aufgaben", area: "Mathe 2", due: todayISO(), effort: 3, status: "Doing", priority: "Hoch" },
-        { id: id(), title: "Luli Wedding Video Schnitt", area: "Fotografie", due: "2026-04-26", effort: 4, status: "To Do", priority: "Hoch" },
-        { id: id(), title: "Mera Album bearbeiten", area: "Fotografie", due: "2026-04-27", effort: 2, status: "To Do", priority: "Mittel" },
-        { id: id(), title: "Koki Banner Final", area: "Fotografie", due: "2026-04-29", effort: 1, status: "To Do", priority: "Mittel" }
-      ];
-
-      const habits = [
-        { id: id(), name: "Mathe 3h", checks: {} },
-        { id: id(), name: "Praxisprojekt 2h Deep Work", checks: {} },
-        { id: id(), name: "Morgenplanung 10min", checks: {} },
-        { id: id(), name: "Abendreview 10min", checks: {} },
-        { id: id(), name: "30min Bewegung", checks: {} }
-      ];
-
-      for (const r of roadmap) await put(stores.roadmap, r);
-      for (const m of meetings) await put(stores.meetings, m);
-      for (const t of initialTasks) await put(stores.tasks, t);
-      for (const h of habits) await put(stores.habits, h);
+      for (const r of setup.roadmap) await put(stores.roadmap, r);
+      for (const m of setup.meetings) await put(stores.meetings, m);
+      for (const t of setup.tasks) await put(stores.tasks, t);
+      for (const h of setup.habits) await put(stores.habits, h);
+      await put(stores.meta, { id: "fixed-schedule", blocks: setup.fixedSchedule, updatedAt: new Date().toISOString() });
 
       await put(stores.review, { id: "weekly", good: "", fix: "", next: "" });
       await put(stores.meta, { id: "seeded", at: new Date().toISOString() });
+      await put(stores.meta, { id: "profile-v2", at: new Date().toISOString() });
+    }
+
+    async function resetToAbelData() {
+      const setup = abelPlanTemplate();
+      await clearStore(stores.tasks);
+      await clearStore(stores.roadmap);
+      await clearStore(stores.meetings);
+      await clearStore(stores.habits);
+      await clearStore(stores.plans);
+
+      for (const r of setup.roadmap) await put(stores.roadmap, r);
+      for (const m of setup.meetings) await put(stores.meetings, m);
+      for (const t of setup.tasks) await put(stores.tasks, t);
+      for (const h of setup.habits) await put(stores.habits, h);
+      await put(stores.review, { id: "weekly", good: "", fix: "", next: "" });
+      await put(stores.meta, { id: "fixed-schedule", blocks: setup.fixedSchedule, updatedAt: new Date().toISOString() });
+      await put(stores.meta, { id: "profile-v2", at: new Date().toISOString() });
+
+      await loadState();
+      await applyAutoRules();
+      renderAll();
     }
 
     async function loadState() {
@@ -1106,6 +1252,10 @@
       state.meetings = await all(stores.meetings);
       state.habits = await all(stores.habits);
       const metaRows = await all(stores.meta);
+      const fixedScheduleMeta = metaRows.find((x) => x.id === "fixed-schedule");
+      state.fixedSchedule = Array.isArray(fixedScheduleMeta && fixedScheduleMeta.blocks)
+        ? fixedScheduleMeta.blocks
+        : abelPlanTemplate().fixedSchedule;
       const filterMeta = metaRows.find((x) => x.id === "task-filters");
       if (filterMeta) {
         state.taskFilterCriticalOnly = Boolean(filterMeta.criticalOnly);
@@ -1119,6 +1269,14 @@
       });
       const reviewRows = await all(stores.review);
       state.review = reviewRows.find((x) => x.id === "weekly") || { good: "", fix: "", next: "" };
+    }
+
+    async function persistFixedSchedule() {
+      await put(stores.meta, {
+        id: "fixed-schedule",
+        blocks: state.fixedSchedule,
+        updatedAt: new Date().toISOString()
+      });
     }
 
     async function persistTaskFilters() {
@@ -1234,7 +1392,7 @@
       const day = today.getDay();
 
       const list = [];
-      fixedSchedule.forEach((e) => {
+      state.fixedSchedule.forEach((e) => {
         if (!e.days.includes(day)) return;
         if (e.until && iso > e.until) return;
         list.push({ slot: e.start + " - " + e.end, title: e.title, area: e.area, priority: e.priority });
@@ -1278,7 +1436,7 @@
       const day = d.getDay();
       let hours = 0;
 
-      fixedSchedule.forEach((e) => {
+      state.fixedSchedule.forEach((e) => {
         if (!e.days.includes(day)) return;
         if (e.until && iso > e.until) return;
         hours += Math.max(0, parseHour(e.end) - parseHour(e.start));
@@ -1296,7 +1454,7 @@
     function isLowEnergyDay(iso) {
       const d = new Date(iso + "T00:00:00");
       const day = d.getDay();
-      return fixedSchedule.some((e) => {
+      return state.fixedSchedule.some((e) => {
         if (!e.days.includes(day)) return false;
         if (e.until && iso > e.until) return false;
         const startHour = parseHour(e.start);
@@ -1361,7 +1519,7 @@
       const day = d.getDay();
       const list = [];
 
-      fixedSchedule.forEach((e) => {
+      state.fixedSchedule.forEach((e) => {
         if (!e.days.includes(day)) return;
         if (e.until && iso > e.until) return;
         list.push({ slot: e.start + " - " + e.end, title: e.title, area: e.area, priority: e.priority });
@@ -1878,6 +2036,7 @@
               </td>
               <td>
                 <div class="action-group">
+                  <button class="tiny" data-id="${t.id}" data-a="edit">Edit</button>
                   <button class="tiny ${t.status === "To Do" ? "on" : ""}" data-id="${t.id}" data-a="todo">ToDo</button>
                   <button class="tiny ${t.status === "Doing" ? "on" : ""}" data-id="${t.id}" data-a="doing">Doing</button>
                   <button class="tiny ${t.status === "Done" ? "on" : ""}" data-id="${t.id}" data-a="done">Done</button>
@@ -2028,6 +2187,8 @@
       renderTasksPage();
       renderHabitsPage();
       renderReviewPage();
+      renderPlanAdmin();
+      updateNotifyStatus();
     }
 
     async function addTask() {
@@ -2038,12 +2199,43 @@
       const effort = Number(document.getElementById("inEffort").value || 1);
       if (!title) return;
 
-      const task = { id: id(), title, area, due, priority, effort, status: "To Do" };
+      const editId = document.getElementById("inTaskEditId").value;
+      const task = editId
+        ? (state.tasks.find((x) => x.id === editId) || { id: editId, status: "To Do" })
+        : { id: id(), status: "To Do" };
+      task.title = title;
+      task.area = area;
+      task.due = due;
+      task.priority = priority;
+      task.effort = effort;
       await put(stores.tasks, task);
       document.getElementById("inTitle").value = "";
       document.getElementById("inDue").value = "";
+      document.getElementById("inTaskEditId").value = "";
+      document.getElementById("taskEditState").textContent = "Neuer Task";
       await loadState();
       renderAll();
+    }
+
+    function editTask(taskId) {
+      const t = state.tasks.find((x) => x.id === taskId);
+      if (!t) return;
+      document.getElementById("inTitle").value = t.title || "";
+      document.getElementById("inArea").value = t.area || "Praxisprojekt";
+      document.getElementById("inDue").value = t.due || "";
+      document.getElementById("inPriority").value = t.priority || "Mittel";
+      document.getElementById("inEffort").value = String(t.effort || 1);
+      document.getElementById("inTaskEditId").value = t.id;
+      document.getElementById("taskEditState").textContent = "Bearbeite Task";
+    }
+
+    function clearTaskEdit() {
+      document.getElementById("inTaskEditId").value = "";
+      document.getElementById("inTitle").value = "";
+      document.getElementById("inDue").value = "";
+      document.getElementById("inPriority").value = "Hoch";
+      document.getElementById("inEffort").value = "1";
+      document.getElementById("taskEditState").textContent = "Neuer Task";
     }
 
     async function updateTaskStatus(taskId, status) {
@@ -2084,6 +2276,276 @@
       renderReviewPage();
     }
 
+    function notifyPermissionText() {
+      if (!("Notification" in window)) return "Nicht verfuegbar";
+      if (Notification.permission === "granted") return "Aktiv";
+      if (Notification.permission === "denied") return "Blockiert";
+      return "Nicht aktiviert";
+    }
+
+    function updateNotifyStatus() {
+      const node = document.getElementById("notifyStatus");
+      if (!node) return;
+      node.textContent = notifyPermissionText();
+    }
+
+    async function enableNotifications() {
+      if (!("Notification" in window)) {
+        alert("Benachrichtigungen sind in diesem Browser nicht verfuegbar.");
+        return;
+      }
+      const res = await Notification.requestPermission();
+      updateNotifyStatus();
+      if (res === "granted") {
+        new Notification("Abel Life OS", { body: "Benachrichtigungen aktiviert." });
+      }
+    }
+
+    function maybeSendDailyReminder() {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const hour = new Date().getHours();
+      if (hour < 7 || hour > 10) return;
+      all(stores.meta).then((metaRows) => {
+        const key = "notify-daily-" + todayISO();
+        if (metaRows.some((x) => x.id === key)) return;
+        const openMathe = state.tasks
+          .filter((t) => t.area === "Mathe 2" && t.status !== "Done" && t.due === todayISO())
+          .reduce((sum, t) => sum + Number(t.effort || 0), 0);
+        new Notification("Mathe 2 Fokus", { body: `Heute geplant: ${openMathe}h von mindestens 3h.` });
+        put(stores.meta, { id: key, at: new Date().toISOString() });
+      });
+    }
+
+    function renderPlanAdmin() {
+      const recurringTable = document.getElementById("recurringAdminTable");
+      const meetingTable = document.getElementById("meetingAdminTable");
+      const roadmapTable = document.getElementById("roadmapAdminTable");
+      if (!recurringTable || !meetingTable || !roadmapTable) return;
+
+      recurringTable.innerHTML = "";
+      state.fixedSchedule.forEach((b) => {
+        const daysLabel = (b.days || []).map((d) => DAY_NAMES[d] || d).join(", ");
+        recurringTable.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>${b.title}</td>
+            <td>${daysLabel}</td>
+            <td>${b.start} - ${b.end}</td>
+            <td>${b.area}</td>
+            <td>${b.until ? toDE(b.until) : "-"}</td>
+            <td>${b.priority}</td>
+            <td>
+              <div class="action-group">
+                <button class="tiny" data-recurring-id="${b.id}" data-a="edit">Edit</button>
+                <button class="tiny" data-recurring-id="${b.id}" data-a="delete">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `);
+      });
+      if (!state.fixedSchedule.length) recurringTable.innerHTML = '<tr><td colspan="7" class="sub">Keine Wochenbloecke</td></tr>';
+
+      meetingTable.innerHTML = "";
+      state.meetings
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .forEach((m) => {
+          meetingTable.insertAdjacentHTML("beforeend", `
+            <tr>
+              <td>${m.title}</td>
+              <td>${toDE(m.date)}</td>
+              <td>${m.start} - ${m.end}</td>
+              <td>
+                <div class="action-group">
+                  <button class="tiny" data-meeting-id="${m.id}" data-a="edit">Edit</button>
+                  <button class="tiny" data-meeting-id="${m.id}" data-a="delete">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+      if (!state.meetings.length) meetingTable.innerHTML = '<tr><td colspan="4" class="sub">Keine Termine</td></tr>';
+
+      roadmapTable.innerHTML = "";
+      state.roadmap
+        .sort((a, b) => a.start.localeCompare(b.start))
+        .forEach((r) => {
+          roadmapTable.insertAdjacentHTML("beforeend", `
+            <tr>
+              <td>${r.title}</td>
+              <td>${toDE(r.start)}</td>
+              <td>${toDE(r.end)}</td>
+              <td>${r.status}</td>
+              <td>
+                <div class="action-group">
+                  <button class="tiny" data-roadmap-id="${r.id}" data-a="edit">Edit</button>
+                  <button class="tiny" data-roadmap-id="${r.id}" data-a="delete">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+      if (!state.roadmap.length) roadmapTable.innerHTML = '<tr><td colspan="5" class="sub">Keine Roadmap-Eintraege</td></tr>';
+    }
+
+    function clearRecurringForm() {
+      document.getElementById("inRecurringTitle").value = "";
+      document.getElementById("inRecurringDays").value = "";
+      document.getElementById("inRecurringStart").value = "";
+      document.getElementById("inRecurringEnd").value = "";
+      document.getElementById("inRecurringUntil").value = "";
+      document.getElementById("inRecurringPriority").value = "Hoch";
+      document.getElementById("inRecurringEditId").value = "";
+    }
+
+    async function saveRecurringBlock() {
+      const title = document.getElementById("inRecurringTitle").value.trim();
+      const daysRaw = document.getElementById("inRecurringDays").value.trim();
+      const start = document.getElementById("inRecurringStart").value;
+      const end = document.getElementById("inRecurringEnd").value;
+      const until = document.getElementById("inRecurringUntil").value;
+      const area = document.getElementById("inRecurringArea").value;
+      const priority = document.getElementById("inRecurringPriority").value;
+      const editId = document.getElementById("inRecurringEditId").value;
+      if (!title || !daysRaw || !start || !end) return;
+
+      const days = daysRaw
+        .split(",")
+        .map((x) => Number(x.trim()))
+        .filter((x) => Number.isInteger(x) && x >= 0 && x <= 6);
+      if (!days.length) {
+        alert("Bitte gueltige Tage eintragen, z. B. 1,2,3,4,5");
+        return;
+      }
+
+      let block;
+      if (editId) {
+        block = state.fixedSchedule.find((x) => x.id === editId) || { id: editId };
+      } else {
+        block = { id: id() };
+        state.fixedSchedule.push(block);
+      }
+
+      block.title = title;
+      block.days = days;
+      block.start = start;
+      block.end = end;
+      block.until = until || "";
+      block.area = area;
+      block.priority = priority;
+
+      await persistFixedSchedule();
+      await loadState();
+      renderAll();
+      clearRecurringForm();
+    }
+
+    function editRecurringBlock(blockId) {
+      const b = state.fixedSchedule.find((x) => x.id === blockId);
+      if (!b) return;
+      document.getElementById("inRecurringTitle").value = b.title || "";
+      document.getElementById("inRecurringDays").value = (b.days || []).join(",");
+      document.getElementById("inRecurringStart").value = b.start || "";
+      document.getElementById("inRecurringEnd").value = b.end || "";
+      document.getElementById("inRecurringUntil").value = b.until || "";
+      document.getElementById("inRecurringArea").value = b.area || "Praxisprojekt";
+      document.getElementById("inRecurringPriority").value = b.priority || "Mittel";
+      document.getElementById("inRecurringEditId").value = b.id;
+    }
+
+    async function deleteRecurringBlock(blockId) {
+      state.fixedSchedule = state.fixedSchedule.filter((x) => x.id !== blockId);
+      await persistFixedSchedule();
+      await loadState();
+      renderAll();
+    }
+
+    function clearMeetingForm() {
+      document.getElementById("inMeetingTitle").value = "";
+      document.getElementById("inMeetingDate").value = "";
+      document.getElementById("inMeetingStart").value = "";
+      document.getElementById("inMeetingEnd").value = "";
+      document.getElementById("inMeetingEditId").value = "";
+    }
+
+    async function saveMeeting() {
+      const title = document.getElementById("inMeetingTitle").value.trim();
+      const date = document.getElementById("inMeetingDate").value;
+      const start = document.getElementById("inMeetingStart").value;
+      const end = document.getElementById("inMeetingEnd").value;
+      const editId = document.getElementById("inMeetingEditId").value;
+      if (!title || !date || !start || !end) return;
+
+      const row = editId ? (state.meetings.find((x) => x.id === editId) || { id: editId }) : { id: id() };
+      row.title = title;
+      row.date = date;
+      row.start = start;
+      row.end = end;
+      await put(stores.meetings, row);
+
+      clearMeetingForm();
+      await loadState();
+      renderAll();
+    }
+
+    function editMeeting(meetingId) {
+      const m = state.meetings.find((x) => x.id === meetingId);
+      if (!m) return;
+      document.getElementById("inMeetingTitle").value = m.title || "";
+      document.getElementById("inMeetingDate").value = m.date || "";
+      document.getElementById("inMeetingStart").value = m.start || "";
+      document.getElementById("inMeetingEnd").value = m.end || "";
+      document.getElementById("inMeetingEditId").value = m.id;
+    }
+
+    async function deleteMeeting(meetingId) {
+      await del(stores.meetings, meetingId);
+      await loadState();
+      renderAll();
+    }
+
+    function clearRoadmapForm() {
+      document.getElementById("inRoadmapTitle").value = "";
+      document.getElementById("inRoadmapStart").value = "";
+      document.getElementById("inRoadmapEnd").value = "";
+      document.getElementById("inRoadmapStatus").value = "geplant";
+      document.getElementById("inRoadmapEditId").value = "";
+    }
+
+    async function saveRoadmap() {
+      const title = document.getElementById("inRoadmapTitle").value.trim();
+      const start = document.getElementById("inRoadmapStart").value;
+      const end = document.getElementById("inRoadmapEnd").value;
+      const status = document.getElementById("inRoadmapStatus").value;
+      const editId = document.getElementById("inRoadmapEditId").value;
+      if (!title || !start || !end) return;
+
+      const row = editId ? (state.roadmap.find((x) => x.id === editId) || { id: editId }) : { id: id() };
+      row.title = title;
+      row.start = start;
+      row.end = end;
+      row.status = status;
+      await put(stores.roadmap, row);
+
+      clearRoadmapForm();
+      await loadState();
+      renderAll();
+    }
+
+    function editRoadmap(roadmapId) {
+      const r = state.roadmap.find((x) => x.id === roadmapId);
+      if (!r) return;
+      document.getElementById("inRoadmapTitle").value = r.title || "";
+      document.getElementById("inRoadmapStart").value = r.start || "";
+      document.getElementById("inRoadmapEnd").value = r.end || "";
+      document.getElementById("inRoadmapStatus").value = r.status || "geplant";
+      document.getElementById("inRoadmapEditId").value = r.id;
+    }
+
+    async function deleteRoadmap(roadmapId) {
+      await del(stores.roadmap, roadmapId);
+      await loadState();
+      renderAll();
+    }
+
     function bindUI() {
       document.getElementById("tabs").addEventListener("click", (e) => {
         const btn = e.target.closest("button.tab");
@@ -2111,8 +2573,11 @@
         if (action === "todo") await updateTaskStatus(idVal, "To Do");
         if (action === "doing") await updateTaskStatus(idVal, "Doing");
         if (action === "done") await updateTaskStatus(idVal, "Done");
+        if (action === "edit") editTask(idVal);
         if (action === "delete") await deleteTask(idVal);
       });
+
+      document.getElementById("btnCancelTaskEdit").addEventListener("click", clearTaskEdit);
 
       document.getElementById("btnToggleCriticalFilter").addEventListener("click", async () => {
         state.taskFilterCriticalOnly = !state.taskFilterCriticalOnly;
@@ -2297,6 +2762,8 @@
         renderReviewPage();
       });
 
+      document.getElementById("btnEnableNotify").addEventListener("click", enableNotifications);
+
       document.getElementById("btnExportBackup").addEventListener("click", exportBackup);
       document.getElementById("btnImportBackup").addEventListener("click", () => {
         document.getElementById("inBackupFile").click();
@@ -2315,6 +2782,42 @@
       document.getElementById("monthNext").addEventListener("click", () => {
         state.monthOffset += 1;
         renderMonthPage();
+      });
+
+      document.getElementById("btnSaveRecurring").addEventListener("click", saveRecurringBlock);
+      document.getElementById("btnCancelRecurringEdit").addEventListener("click", clearRecurringForm);
+      document.getElementById("recurringAdminTable").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-recurring-id]");
+        if (!b) return;
+        const idVal = b.dataset.recurringId;
+        if (b.dataset.a === "edit") editRecurringBlock(idVal);
+        if (b.dataset.a === "delete") await deleteRecurringBlock(idVal);
+      });
+
+      document.getElementById("btnSaveMeeting").addEventListener("click", saveMeeting);
+      document.getElementById("btnCancelMeetingEdit").addEventListener("click", clearMeetingForm);
+      document.getElementById("meetingAdminTable").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-meeting-id]");
+        if (!b) return;
+        const idVal = b.dataset.meetingId;
+        if (b.dataset.a === "edit") editMeeting(idVal);
+        if (b.dataset.a === "delete") await deleteMeeting(idVal);
+      });
+
+      document.getElementById("btnSaveRoadmap").addEventListener("click", saveRoadmap);
+      document.getElementById("btnCancelRoadmapEdit").addEventListener("click", clearRoadmapForm);
+      document.getElementById("roadmapAdminTable").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-roadmap-id]");
+        if (!b) return;
+        const idVal = b.dataset.roadmapId;
+        if (b.dataset.a === "edit") editRoadmap(idVal);
+        if (b.dataset.a === "delete") await deleteRoadmap(idVal);
+      });
+
+      document.getElementById("btnResetAbelData").addEventListener("click", async () => {
+        const ok = window.confirm("Alle Plan-/Task-Daten auf dein aktuelles Setup zurücksetzen?");
+        if (!ok) return;
+        await resetToAbelData();
       });
     }
 
@@ -2335,6 +2838,7 @@
       await applyAutoRules();
       bindUI();
       renderAll();
+      maybeSendDailyReminder();
     }
 
     init().catch((err) => {
