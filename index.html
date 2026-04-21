@@ -264,6 +264,51 @@
       background: rgba(120, 28, 28, 0.18);
     }
 
+    .risk-heat {
+      border-radius: 8px;
+      padding: 4px 6px;
+    }
+
+    .chart-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 8px;
+    }
+
+    .chart-box {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(7, 12, 18, 0.45);
+    }
+
+    .bar-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 120px;
+      margin-top: 6px;
+    }
+
+    .bar-col {
+      flex: 1;
+      min-width: 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px 6px 3px 3px;
+      background: linear-gradient(180deg, #ff9f6f 0%, #ff7a3d 100%);
+    }
+
+    .bar-labels {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 5px;
+      text-align: center;
+    }
+
     .critical-title {
       color: #ffd7d7;
       font-weight: 700;
@@ -729,6 +774,18 @@
             <span class="meta" id="automationStatus">Bereit.</span>
           </div>
           <div class="list" id="weeklyBudgetList"></div>
+          <div class="chart-grid">
+            <div class="chart-box">
+              <div class="title">Timer Tageschart (7 Tage)</div>
+              <div class="bar-wrap" id="timerDayBars"></div>
+              <div class="bar-labels" id="timerDayLabels"></div>
+            </div>
+            <div class="chart-box">
+              <div class="title">Timer Wochenchart (8 Wochen)</div>
+              <div class="bar-wrap" id="timerWeekBars"></div>
+              <div class="bar-labels" id="timerWeekLabels"></div>
+            </div>
+          </div>
         </article>
 
         <article class="card span-12">
@@ -1055,6 +1112,8 @@
       energyMode: "normal",
       weeklyBudgets: {},
       focusTimer: { running: false, taskId: "", startedAt: null, elapsedSec: 0 },
+      focusLogs: [],
+      photoRecurringTemplates: [],
       habits: [],
       review: { good: "", fix: "", next: "" },
       plans: {},
@@ -1083,6 +1142,16 @@
         { id: id(), title: "Binomialkoeffizient und Kombinatorik", hours: 3, done: false },
         { id: id(), title: "Wahrscheinlichkeit, Exponential- und Normalverteilung, Zufallsvariablen", hours: 4, done: false },
         { id: id(), title: "Statistik", hours: 3, done: false }
+      ];
+    }
+
+    function defaultPhotoRecurringTemplates() {
+      return [
+        { id: id(), title: "Mera Wedding Video", effort: 10, priority: "Hoch", dueDay: 8 },
+        { id: id(), title: "Mera Wedding Album", effort: 3, priority: "Mittel", dueDay: 10 },
+        { id: id(), title: "Koki Wedding Stand-up Banner", effort: 2, priority: "Mittel", dueDay: 14 },
+        { id: id(), title: "Teame Taufe", effort: 6, priority: "Mittel", dueDay: 18 },
+        { id: id(), title: "Luli Wedding", effort: 15, priority: "Hoch", dueDay: 22 }
       ];
     }
 
@@ -1311,6 +1380,7 @@
       await put(stores.meta, { id: "seeded", at: new Date().toISOString() });
       await put(stores.meta, { id: "profile-v2", at: new Date().toISOString() });
       await put(stores.meta, { id: "mathe-topics", topics: defaultMatheTopics(), updatedAt: new Date().toISOString() });
+      await put(stores.meta, { id: "photo-recurring-templates", items: defaultPhotoRecurringTemplates(), updatedAt: new Date().toISOString() });
     }
 
     async function resetToAbelData() {
@@ -1329,6 +1399,7 @@
       await put(stores.meta, { id: "fixed-schedule", blocks: setup.fixedSchedule, updatedAt: new Date().toISOString() });
       await put(stores.meta, { id: "profile-v2", at: new Date().toISOString() });
       await put(stores.meta, { id: "mathe-topics", topics: defaultMatheTopics(), updatedAt: new Date().toISOString() });
+      await put(stores.meta, { id: "photo-recurring-templates", items: defaultPhotoRecurringTemplates(), updatedAt: new Date().toISOString() });
 
       await loadState();
       await applyAutoRules();
@@ -1360,6 +1431,11 @@
       };
       const focusMeta = metaRows.find((x) => x.id === "focus-timer");
       state.focusTimer = (focusMeta && focusMeta.timer) || { running: false, taskId: "", startedAt: null, elapsedSec: 0 };
+      const photoMeta = metaRows.find((x) => x.id === "photo-recurring-templates");
+      state.photoRecurringTemplates = (photoMeta && photoMeta.items) || defaultPhotoRecurringTemplates();
+      state.focusLogs = metaRows
+        .filter((x) => String(x.id || "").startsWith("focus-log-"))
+        .sort((a, b) => String(a.at || "").localeCompare(String(b.at || "")));
       const filterMeta = metaRows.find((x) => x.id === "task-filters");
       if (filterMeta) {
         state.taskFilterCriticalOnly = Boolean(filterMeta.criticalOnly);
@@ -1401,6 +1477,14 @@
 
     async function persistFocusTimer() {
       await put(stores.meta, { id: "focus-timer", timer: state.focusTimer, updatedAt: new Date().toISOString() });
+    }
+
+    async function persistPhotoRecurringTemplates() {
+      await put(stores.meta, {
+        id: "photo-recurring-templates",
+        items: state.photoRecurringTemplates,
+        updatedAt: new Date().toISOString()
+      });
     }
 
     async function persistTaskFilters() {
@@ -1491,6 +1575,9 @@
       const autoMeetingAdded = await ensureBiWeeklyMentorMeetings();
       if (autoMeetingAdded > 0) changed += autoMeetingAdded;
 
+      const autoPhotoAdded = await ensureMonthlyPhotoRecurringTasks();
+      if (autoPhotoAdded > 0) changed += autoPhotoAdded;
+
       await put(stores.meta, { id: "auto-rule-last", date: today, changes: changed, at: new Date().toISOString() });
       if (changed > 0) await loadState();
     }
@@ -1517,6 +1604,58 @@
         }
         cursor.setDate(cursor.getDate() + 14);
       }
+      return created;
+    }
+
+    function ymFromDate(iso) {
+      return iso.slice(0, 7);
+    }
+
+    function isoFromYearMonthDay(ym, day) {
+      const [y, m] = ym.split("-").map(Number);
+      const d = new Date(y, m - 1, Math.max(1, day));
+      const month = d.getMonth();
+      if (month !== (m - 1)) {
+        const last = new Date(y, m, 0);
+        return last.toISOString().slice(0, 10);
+      }
+      return d.toISOString().slice(0, 10);
+    }
+
+    async function ensureMonthlyPhotoRecurringTasks() {
+      const today = todayISO();
+      const thisYm = ymFromDate(today);
+      const nextYm = ymFromDate(plusDays(today, 35));
+      const months = [thisYm, nextYm];
+      let created = 0;
+
+      if (!state.photoRecurringTemplates.length) {
+        state.photoRecurringTemplates = defaultPhotoRecurringTemplates();
+        await persistPhotoRecurringTemplates();
+      }
+
+      for (const ym of months) {
+        for (const tpl of state.photoRecurringTemplates) {
+          const key = `${ym}:${tpl.title}`;
+          const exists = state.tasks.some((t) => t.recurringKey === key);
+          if (exists) continue;
+          const due = isoFromYearMonthDay(ym, Number(tpl.dueDay || 20));
+          await put(stores.tasks, {
+            id: id(),
+            title: `[Monat ${ym}] ${tpl.title}`,
+            area: "Fotografie",
+            due,
+            effort: Number(tpl.effort || 2),
+            priority: tpl.priority || "Mittel",
+            status: "To Do",
+            photoStage: PHOTO_STAGES[0],
+            recurringKey: key,
+            autoGenerated: true
+          });
+          created += 1;
+        }
+      }
+
       return created;
     }
 
@@ -1833,6 +1972,53 @@
       if (!Object.keys(state.weeklyBudgets).length) list.innerHTML = '<div class="sub">Keine Budgets hinterlegt.</div>';
     }
 
+    function renderTimerCharts() {
+      const dayBars = document.getElementById("timerDayBars");
+      const dayLabels = document.getElementById("timerDayLabels");
+      const weekBars = document.getElementById("timerWeekBars");
+      const weekLabels = document.getElementById("timerWeekLabels");
+      if (!dayBars || !dayLabels || !weekBars || !weekLabels) return;
+
+      const dayKeys = Array.from({ length: 7 }, (_, idx) => plusDays(todayISO(), -(6 - idx)));
+      const dayData = dayKeys.map((d) => {
+        const minutes = state.focusLogs
+          .filter((x) => String(x.at || "").slice(0, 10) === d)
+          .reduce((s, x) => s + Number(x.minutes || 0), 0);
+        return { key: d, minutes };
+      });
+      const maxDay = Math.max(30, ...dayData.map((x) => x.minutes));
+
+      dayBars.innerHTML = "";
+      dayLabels.innerHTML = "";
+      dayData.forEach((row) => {
+        const h = Math.max(5, Math.round((row.minutes / maxDay) * 100));
+        dayBars.insertAdjacentHTML("beforeend", `<div class="bar-col" style="height:${h}%;" title="${toDE(row.key)}: ${row.minutes} min"></div>`);
+        dayLabels.insertAdjacentHTML("beforeend", `<div>${new Date(row.key + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short" })}</div>`);
+      });
+
+      const weekData = Array.from({ length: 8 }, (_, idx) => {
+        const anchor = plusDays(todayISO(), -((7 - idx) * 7));
+        const monday = mondayOfISO(anchor);
+        const sunday = plusDays(monday, 6);
+        const minutes = state.focusLogs
+          .filter((x) => {
+            const d = String(x.at || "").slice(0, 10);
+            return d >= monday && d <= sunday;
+          })
+          .reduce((s, x) => s + Number(x.minutes || 0), 0);
+        return { monday, minutes };
+      });
+      const maxWeek = Math.max(60, ...weekData.map((x) => x.minutes));
+
+      weekBars.innerHTML = "";
+      weekLabels.innerHTML = "";
+      weekData.forEach((row) => {
+        const h = Math.max(5, Math.round((row.minutes / maxWeek) * 100));
+        weekBars.insertAdjacentHTML("beforeend", `<div class="bar-col" style="height:${h}%;" title="KW ${getIsoWeekKey(new Date(row.monday + "T00:00:00"))}: ${row.minutes} min"></div>`);
+        weekLabels.insertAdjacentHTML("beforeend", `<div>${getIsoWeekKey(new Date(row.monday + "T00:00:00")).slice(-2)}</div>`);
+      });
+    }
+
     async function saveBudget() {
       const area = document.getElementById("inBudgetArea").value.trim();
       const hours = Number(document.getElementById("inBudgetHours").value || 0);
@@ -2138,6 +2324,7 @@
       renderWeeklyBudgets();
       renderFocusTimerTaskSelect();
       renderFocusTimerStatus();
+      renderTimerCharts();
       const energyNode = document.getElementById("inEnergyMode");
       if (energyNode) energyNode.value = state.energyMode || "normal";
     }
@@ -2492,6 +2679,8 @@
           const risk = taskRiskScore(t);
           const riskLabel = taskRiskLabel(risk);
           const stage = t.area === "Fotografie" ? (t.photoStage || PHOTO_STAGES[0]) : "-";
+          const heatHue = Math.max(0, Math.min(120, Math.round(120 - (risk * 1.2))));
+          const heatBg = `hsla(${heatHue}, 80%, 45%, 0.22)`;
           tbody.insertAdjacentHTML("beforeend", `
             <tr class="${t.critical ? "critical-row" : ""}">
               <td>
@@ -2509,7 +2698,7 @@
               </td>
               <td>
                 <div class="sub">${stage}</div>
-                <div class="sub">Risiko: ${risk} (${riskLabel})</div>
+                <div class="sub risk-heat" style="background:${heatBg};">Risiko: ${risk} (${riskLabel})</div>
               </td>
               <td>
                 <div class="action-group">
@@ -2749,6 +2938,7 @@
       task.due = due;
       task.priority = priority;
       task.effort = effort;
+      if (task.area === "Fotografie" && !task.photoStage) task.photoStage = PHOTO_STAGES[0];
       await put(stores.tasks, task);
       document.getElementById("inTitle").value = "";
       document.getElementById("inDue").value = "";
@@ -2756,6 +2946,27 @@
       document.getElementById("taskEditState").textContent = "Neuer Task";
       await loadState();
       renderAll();
+    }
+
+    async function enrichPhotoTemplatesFromManualTasks() {
+      const manualPhoto = state.tasks
+        .filter((t) => t.area === "Fotografie")
+        .filter((t) => !t.autoGenerated)
+        .slice(0, 20);
+      let changed = false;
+      manualPhoto.forEach((t) => {
+        const exists = state.photoRecurringTemplates.some((x) => x.title === t.title);
+        if (exists) return;
+        state.photoRecurringTemplates.push({
+          id: id(),
+          title: t.title,
+          effort: Number(t.effort || 2),
+          priority: t.priority || "Mittel",
+          dueDay: 20
+        });
+        changed = true;
+      });
+      if (changed) await persistPhotoRecurringTemplates();
     }
 
     function editTask(taskId) {
@@ -3447,6 +3658,7 @@
       db = await openDatabase();
       await seedIfEmpty();
       await loadState();
+      await enrichPhotoTemplatesFromManualTasks();
       await applyAutoRules();
       bindUI();
       renderAll();
