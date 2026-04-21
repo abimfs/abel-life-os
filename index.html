@@ -901,6 +901,7 @@
             Foto-Templates (monatlich automatisch)
             <span class="inline-tools">
               <button class="btn secondary" id="btnPhotoTemplateActiveOnly">Nur aktive: OFF</button>
+              <button class="btn secondary" id="btnPhotoTemplateDisabledOnly">Nur deaktivierte: OFF</button>
               <span class="meta" id="photoTemplateFilterState">Zeigt alle Templates</span>
             </span>
           </div>
@@ -1169,7 +1170,8 @@
       taskFilterCriticalOnly: false,
       taskFilterOpenOnly: false,
       taskFilterAreas: [],
-      photoTemplateActiveOnly: false
+      photoTemplateActiveOnly: false,
+      photoTemplateDisabledOnly: false
     };
 
     const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -3176,14 +3178,20 @@
       const roadmapTable = document.getElementById("roadmapAdminTable");
       const photoTemplateTable = document.getElementById("photoTemplateTable");
       const activeOnlyBtn = document.getElementById("btnPhotoTemplateActiveOnly");
+      const disabledOnlyBtn = document.getElementById("btnPhotoTemplateDisabledOnly");
       const filterState = document.getElementById("photoTemplateFilterState");
       if (!recurringTable || !meetingTable || !roadmapTable || !photoTemplateTable) return;
 
       if (activeOnlyBtn) {
         activeOnlyBtn.textContent = `Nur aktive: ${state.photoTemplateActiveOnly ? "ON" : "OFF"}`;
       }
+      if (disabledOnlyBtn) {
+        disabledOnlyBtn.textContent = `Nur deaktivierte: ${state.photoTemplateDisabledOnly ? "ON" : "OFF"}`;
+      }
       if (filterState) {
-        filterState.textContent = state.photoTemplateActiveOnly ? "Zeigt nur aktive Templates" : "Zeigt alle Templates";
+        if (state.photoTemplateActiveOnly) filterState.textContent = "Zeigt nur aktive Templates";
+        else if (state.photoTemplateDisabledOnly) filterState.textContent = "Zeigt nur deaktivierte Templates";
+        else filterState.textContent = "Zeigt alle Templates";
       }
 
       recurringTable.innerHTML = "";
@@ -3251,8 +3259,9 @@
 
       photoTemplateTable.innerHTML = "";
       const visibleTemplates = state.photoRecurringTemplates.filter((tpl) => {
-        if (!state.photoTemplateActiveOnly) return true;
-        return tpl.enabled !== false;
+        if (state.photoTemplateActiveOnly) return tpl.enabled !== false;
+        if (state.photoTemplateDisabledOnly) return tpl.enabled === false;
+        return true;
       });
 
       visibleTemplates.forEach((tpl) => {
@@ -3753,6 +3762,13 @@
 
       document.getElementById("btnPhotoTemplateActiveOnly").addEventListener("click", () => {
         state.photoTemplateActiveOnly = !state.photoTemplateActiveOnly;
+        if (state.photoTemplateActiveOnly) state.photoTemplateDisabledOnly = false;
+        renderPlanAdmin();
+      });
+
+      document.getElementById("btnPhotoTemplateDisabledOnly").addEventListener("click", () => {
+        state.photoTemplateDisabledOnly = !state.photoTemplateDisabledOnly;
+        if (state.photoTemplateDisabledOnly) state.photoTemplateActiveOnly = false;
         renderPlanAdmin();
       });
 
