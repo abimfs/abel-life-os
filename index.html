@@ -897,7 +897,13 @@
             <tbody id="roadmapAdminTable"></tbody>
           </table>
 
-          <div style="margin-top:12px;" class="title">Foto-Templates (monatlich automatisch)</div>
+          <div style="margin-top:12px;" class="title">
+            Foto-Templates (monatlich automatisch)
+            <span class="inline-tools">
+              <button class="btn secondary" id="btnPhotoTemplateActiveOnly">Nur aktive: OFF</button>
+              <span class="meta" id="photoTemplateFilterState">Zeigt alle Templates</span>
+            </span>
+          </div>
           <table>
             <thead>
               <tr><th>Titel</th><th>Aufwand</th><th>Tag im Monat</th><th>Prio</th><th>Monatlich</th><th>Aktion</th></tr>
@@ -1162,7 +1168,8 @@
       monthOffset: 0,
       taskFilterCriticalOnly: false,
       taskFilterOpenOnly: false,
-      taskFilterAreas: []
+      taskFilterAreas: [],
+      photoTemplateActiveOnly: false
     };
 
     const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -3168,7 +3175,16 @@
       const meetingTable = document.getElementById("meetingAdminTable");
       const roadmapTable = document.getElementById("roadmapAdminTable");
       const photoTemplateTable = document.getElementById("photoTemplateTable");
+      const activeOnlyBtn = document.getElementById("btnPhotoTemplateActiveOnly");
+      const filterState = document.getElementById("photoTemplateFilterState");
       if (!recurringTable || !meetingTable || !roadmapTable || !photoTemplateTable) return;
+
+      if (activeOnlyBtn) {
+        activeOnlyBtn.textContent = `Nur aktive: ${state.photoTemplateActiveOnly ? "ON" : "OFF"}`;
+      }
+      if (filterState) {
+        filterState.textContent = state.photoTemplateActiveOnly ? "Zeigt nur aktive Templates" : "Zeigt alle Templates";
+      }
 
       recurringTable.innerHTML = "";
       state.fixedSchedule.forEach((b) => {
@@ -3234,7 +3250,12 @@
       if (!state.roadmap.length) roadmapTable.innerHTML = '<tr><td colspan="5" class="sub">Keine Roadmap-Eintraege</td></tr>';
 
       photoTemplateTable.innerHTML = "";
-      state.photoRecurringTemplates.forEach((tpl) => {
+      const visibleTemplates = state.photoRecurringTemplates.filter((tpl) => {
+        if (!state.photoTemplateActiveOnly) return true;
+        return tpl.enabled !== false;
+      });
+
+      visibleTemplates.forEach((tpl) => {
         const enabled = tpl.enabled !== false;
         photoTemplateTable.insertAdjacentHTML("beforeend", `
           <tr>
@@ -3251,7 +3272,7 @@
           </tr>
         `);
       });
-      if (!state.photoRecurringTemplates.length) photoTemplateTable.innerHTML = '<tr><td colspan="6" class="sub">Keine Foto-Templates</td></tr>';
+      if (!visibleTemplates.length) photoTemplateTable.innerHTML = '<tr><td colspan="6" class="sub">Keine Foto-Templates fuer diesen Filter</td></tr>';
     }
 
     function clearRecurringForm() {
@@ -3728,6 +3749,11 @@
         await persistPhotoRecurringTemplates();
         await applyAutoRules();
         renderAll();
+      });
+
+      document.getElementById("btnPhotoTemplateActiveOnly").addEventListener("click", () => {
+        state.photoTemplateActiveOnly = !state.photoTemplateActiveOnly;
+        renderPlanAdmin();
       });
 
       document.getElementById("btnResetAbelData").addEventListener("click", async () => {
