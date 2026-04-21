@@ -659,6 +659,18 @@
         </article>
 
         <article class="card span-6">
+          <h2>Mathe 2 Themenplan</h2>
+          <div class="meta" id="matheTopicProgressLabel">0 / 0 Themen erledigt</div>
+          <div class="progress"><span id="matheTopicProgressBar"></span></div>
+          <div class="list" id="matheTopicsList" style="margin-top:8px;"></div>
+          <div class="form-grid" style="margin-top:8px;">
+            <input id="inMatheTopicTitle" placeholder="Neues Mathe-Thema" />
+            <input id="inMatheTopicHours" type="number" min="1" max="20" placeholder="Stunden" />
+            <button class="btn" id="btnAddMatheTopic">Thema speichern</button>
+          </div>
+        </article>
+
+        <article class="card span-6">
           <h2>
             Benachrichtigungen
             <span class="inline-tools">
@@ -989,6 +1001,7 @@
       roadmap: [],
       meetings: [],
       fixedSchedule: [],
+      matheTopics: [],
       habits: [],
       review: { good: "", fix: "", next: "" },
       plans: {},
@@ -999,6 +1012,25 @@
     };
 
     const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+    const PRAXIS_START = "2026-04-06";
+    const PRAXIS_END = "2026-06-21";
+    const FIRST_MENTOR_MEETING = "2026-04-24";
+
+    function defaultMatheTopics() {
+      return [
+        { id: id(), title: "Induktion", hours: 3, done: false },
+        { id: id(), title: "Relationen, Funktionen im Mehrdimensionalen", hours: 3, done: false },
+        { id: id(), title: "Partielle Ableitung, Gradient, Jacobi-Matrix, lineare Approximation", hours: 4, done: false },
+        { id: id(), title: "Kurven, Integration im Mehrdimensionalen", hours: 4, done: false },
+        { id: id(), title: "DGL, Euler- und Heun-Verfahren, partielle DGL", hours: 4, done: false },
+        { id: id(), title: "Fourier-Reihen, komplexe Form", hours: 3, done: false },
+        { id: id(), title: "Diskrete Fourier-Transformation", hours: 3, done: false },
+        { id: id(), title: "Binomialkoeffizient und Kombinatorik", hours: 3, done: false },
+        { id: id(), title: "Wahrscheinlichkeit, Exponential- und Normalverteilung, Zufallsvariablen", hours: 4, done: false },
+        { id: id(), title: "Statistik", hours: 3, done: false }
+      ];
+    }
 
     function abelPlanTemplate() {
       return {
@@ -1223,6 +1255,7 @@
       await put(stores.review, { id: "weekly", good: "", fix: "", next: "" });
       await put(stores.meta, { id: "seeded", at: new Date().toISOString() });
       await put(stores.meta, { id: "profile-v2", at: new Date().toISOString() });
+      await put(stores.meta, { id: "mathe-topics", topics: defaultMatheTopics(), updatedAt: new Date().toISOString() });
     }
 
     async function resetToAbelData() {
@@ -1240,6 +1273,7 @@
       await put(stores.review, { id: "weekly", good: "", fix: "", next: "" });
       await put(stores.meta, { id: "fixed-schedule", blocks: setup.fixedSchedule, updatedAt: new Date().toISOString() });
       await put(stores.meta, { id: "profile-v2", at: new Date().toISOString() });
+      await put(stores.meta, { id: "mathe-topics", topics: defaultMatheTopics(), updatedAt: new Date().toISOString() });
 
       await loadState();
       await applyAutoRules();
@@ -1256,6 +1290,10 @@
       state.fixedSchedule = Array.isArray(fixedScheduleMeta && fixedScheduleMeta.blocks)
         ? fixedScheduleMeta.blocks
         : abelPlanTemplate().fixedSchedule;
+      const matheTopicsMeta = metaRows.find((x) => x.id === "mathe-topics");
+      state.matheTopics = Array.isArray(matheTopicsMeta && matheTopicsMeta.topics)
+        ? matheTopicsMeta.topics
+        : defaultMatheTopics();
       const filterMeta = metaRows.find((x) => x.id === "task-filters");
       if (filterMeta) {
         state.taskFilterCriticalOnly = Boolean(filterMeta.criticalOnly);
@@ -1275,6 +1313,14 @@
       await put(stores.meta, {
         id: "fixed-schedule",
         blocks: state.fixedSchedule,
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    async function persistMatheTopics() {
+      await put(stores.meta, {
+        id: "mathe-topics",
+        topics: state.matheTopics,
         updatedAt: new Date().toISOString()
       });
     }
@@ -1364,8 +1410,36 @@
         changed += 1;
       }
 
+      const autoMeetingAdded = await ensureBiWeeklyMentorMeetings();
+      if (autoMeetingAdded > 0) changed += autoMeetingAdded;
+
       await put(stores.meta, { id: "auto-rule-last", date: today, changes: changed, at: new Date().toISOString() });
       if (changed > 0) await loadState();
+    }
+
+    async function ensureBiWeeklyMentorMeetings() {
+      const start = new Date(FIRST_MENTOR_MEETING + "T00:00:00");
+      const end = new Date(PRAXIS_END + "T00:00:00");
+      let cursor = new Date(start);
+      let created = 0;
+
+      while (cursor <= end) {
+        const iso = cursor.toISOString().slice(0, 10);
+        const exists = state.meetings.some((m) => m.date === iso && m.start === "10:30" && m.end === "11:00" && String(m.title || "").toLowerCase().includes("betreuung"));
+        if (!exists) {
+          await put(stores.meetings, {
+            id: id(),
+            date: iso,
+            start: "10:30",
+            end: "11:00",
+            title: "Betreuungstermin",
+            autoSeries: "mentor-biweekly"
+          });
+          created += 1;
+        }
+        cursor.setDate(cursor.getDate() + 14);
+      }
+      return created;
     }
 
     function getDayPlan(iso) {
@@ -2178,9 +2252,72 @@
       });
     }
 
+    function renderMatheTopics() {
+      const list = document.getElementById("matheTopicsList");
+      const label = document.getElementById("matheTopicProgressLabel");
+      const bar = document.getElementById("matheTopicProgressBar");
+      if (!list || !label || !bar) return;
+
+      list.innerHTML = "";
+      const total = state.matheTopics.length;
+      const done = state.matheTopics.filter((x) => x.done).length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+
+      label.textContent = `${done} / ${total} Themen erledigt`;
+      bar.style.width = pct + "%";
+
+      state.matheTopics.forEach((topic) => {
+        list.insertAdjacentHTML("beforeend", `
+          <div class="item">
+            <div class="row">
+              <div>
+                <div class="title">${topic.done ? "[x]" : "[ ]"} ${topic.title}</div>
+                <div class="sub">${topic.hours || 1}h Fokusblock</div>
+              </div>
+              <div class="action-group">
+                <button class="tiny" data-mathe-topic-id="${topic.id}" data-a="toggle">${topic.done ? "Undo" : "Done"}</button>
+                <button class="tiny" data-mathe-topic-id="${topic.id}" data-a="delete">Delete</button>
+              </div>
+            </div>
+          </div>
+        `);
+      });
+
+      if (!total) {
+        list.innerHTML = '<div class="sub">Keine Mathe-Themen vorhanden.</div>';
+      }
+    }
+
+    async function addMatheTopic() {
+      const title = document.getElementById("inMatheTopicTitle").value.trim();
+      const hours = Number(document.getElementById("inMatheTopicHours").value || 1);
+      if (!title) return;
+
+      state.matheTopics.push({ id: id(), title, hours: Math.max(1, hours), done: false });
+      await persistMatheTopics();
+      document.getElementById("inMatheTopicTitle").value = "";
+      document.getElementById("inMatheTopicHours").value = "";
+      renderMatheTopics();
+    }
+
+    async function toggleMatheTopic(topicId) {
+      const row = state.matheTopics.find((x) => x.id === topicId);
+      if (!row) return;
+      row.done = !row.done;
+      await persistMatheTopics();
+      renderMatheTopics();
+    }
+
+    async function deleteMatheTopic(topicId) {
+      state.matheTopics = state.matheTopics.filter((x) => x.id !== topicId);
+      await persistMatheTopics();
+      renderMatheTopics();
+    }
+
     function renderAll() {
       renderHeader();
       renderDashboard();
+      renderMatheTopics();
       renderTodayPage();
       renderWeekPage();
       renderMonthPage();
@@ -2763,6 +2900,15 @@
       });
 
       document.getElementById("btnEnableNotify").addEventListener("click", enableNotifications);
+
+      document.getElementById("btnAddMatheTopic").addEventListener("click", addMatheTopic);
+      document.getElementById("matheTopicsList").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-mathe-topic-id]");
+        if (!b) return;
+        const idVal = b.dataset.matheTopicId;
+        if (b.dataset.a === "toggle") await toggleMatheTopic(idVal);
+        if (b.dataset.a === "delete") await deleteMatheTopic(idVal);
+      });
 
       document.getElementById("btnExportBackup").addEventListener("click", exportBackup);
       document.getElementById("btnImportBackup").addEventListener("click", () => {
