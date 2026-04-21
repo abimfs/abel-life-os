@@ -695,6 +695,43 @@
         </article>
 
         <article class="card span-12">
+          <h2>Performance + Automation</h2>
+          <div class="form-grid" style="margin-bottom:8px;">
+            <select id="inEnergyMode">
+              <option value="low">Energie: Niedrig</option>
+              <option value="normal" selected>Energie: Normal</option>
+              <option value="high">Energie: Hoch</option>
+            </select>
+            <button class="btn secondary" id="btnSaveEnergyMode">Energie speichern</button>
+            <button class="btn secondary" id="btnSmartReplan">Smart Re-Plan</button>
+            <select id="inShiftScenario">
+              <option value="base">Schicht-Szenario: Basis (Di+So)</option>
+              <option value="june-heavy">Schicht-Szenario: Juni 3-4x/Woche</option>
+              <option value="off-week">Schicht-Szenario: Leichte Woche</option>
+            </select>
+            <button class="btn secondary" id="btnApplyShiftScenario">Szenario anwenden</button>
+            <button class="btn secondary" id="btnExportICS">Kalender (ICS) exportieren</button>
+          </div>
+
+          <div class="form-grid" style="margin-bottom:8px;">
+            <select id="focusTimerTask"></select>
+            <button class="btn" id="btnStartFocusTimer">Focus Start</button>
+            <button class="btn secondary" id="btnStopFocusTimer">Focus Stop</button>
+            <div class="hint" id="focusTimerStatus">Timer: 00:00:00</div>
+            <button class="btn secondary" id="btnAutofillWeeklyReview">Weekly Review Entwurf</button>
+            <button class="btn secondary" id="btnMonthlyReportPdf">Monatsbericht (PDF)</button>
+          </div>
+
+          <div class="form-grid" style="margin-bottom:8px;">
+            <input id="inBudgetArea" placeholder="Budget Bereich (z.B. Mathe 2)" />
+            <input id="inBudgetHours" type="number" min="1" max="80" placeholder="Budget Stunden/Woche" />
+            <button class="btn secondary" id="btnSaveBudget">Budget speichern</button>
+            <span class="meta" id="automationStatus">Bereit.</span>
+          </div>
+          <div class="list" id="weeklyBudgetList"></div>
+        </article>
+
+        <article class="card span-12">
           <h2>
             Plan Admin (klickbar bearbeitbar)
             <span class="inline-tools">
@@ -935,7 +972,7 @@
           </h2>
           <table>
             <thead>
-              <tr><th>Titel</th><th>Bereich</th><th>Faellig</th><th>Aufwand</th><th>Status</th><th>Prio</th><th>Aktion</th></tr>
+              <tr><th>Titel</th><th>Bereich</th><th>Faellig</th><th>Aufwand</th><th>Status</th><th>Prio</th><th>Pipeline/Risiko</th><th>Aktion</th></tr>
             </thead>
             <tbody id="taskTable"></tbody>
           </table>
@@ -1015,6 +1052,9 @@
       meetings: [],
       fixedSchedule: [],
       matheTopics: [],
+      energyMode: "normal",
+      weeklyBudgets: {},
+      focusTimer: { running: false, taskId: "", startedAt: null, elapsedSec: 0 },
       habits: [],
       review: { good: "", fix: "", next: "" },
       plans: {},
@@ -1025,6 +1065,7 @@
     };
 
     const DAY_NAMES = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+    const PHOTO_STAGES = ["Raw", "Schnitt", "Korrektur", "Export", "Geliefert", "Bezahlt"];
 
     const PRAXIS_START = "2026-04-06";
     const PRAXIS_END = "2026-06-21";
@@ -1096,6 +1137,7 @@
     }
 
     const HARD_MAX_FOCUS_HOURS_PER_DAY = 6;
+    let focusTimerTick = null;
 
     function todayISO() {
       return new Date().toISOString().slice(0, 10);
@@ -1307,6 +1349,17 @@
       state.matheTopics = Array.isArray(matheTopicsMeta && matheTopicsMeta.topics)
         ? matheTopicsMeta.topics
         : defaultMatheTopics();
+      const energyMeta = metaRows.find((x) => x.id === "energy-mode");
+      state.energyMode = (energyMeta && energyMeta.mode) || "normal";
+      const budgetMeta = metaRows.find((x) => x.id === "weekly-budgets");
+      state.weeklyBudgets = (budgetMeta && budgetMeta.items) || {
+        "Mathe 2": 21,
+        "Praxisprojekt": 20,
+        "Bachelorarbeit": 20,
+        "Fotografie": 8
+      };
+      const focusMeta = metaRows.find((x) => x.id === "focus-timer");
+      state.focusTimer = (focusMeta && focusMeta.timer) || { running: false, taskId: "", startedAt: null, elapsedSec: 0 };
       const filterMeta = metaRows.find((x) => x.id === "task-filters");
       if (filterMeta) {
         state.taskFilterCriticalOnly = Boolean(filterMeta.criticalOnly);
@@ -1336,6 +1389,18 @@
         topics: state.matheTopics,
         updatedAt: new Date().toISOString()
       });
+    }
+
+    async function persistEnergyMode() {
+      await put(stores.meta, { id: "energy-mode", mode: state.energyMode, updatedAt: new Date().toISOString() });
+    }
+
+    async function persistWeeklyBudgets() {
+      await put(stores.meta, { id: "weekly-budgets", items: state.weeklyBudgets, updatedAt: new Date().toISOString() });
+    }
+
+    async function persistFocusTimer() {
+      await put(stores.meta, { id: "focus-timer", timer: state.focusTimer, updatedAt: new Date().toISOString() });
     }
 
     async function persistTaskFilters() {
@@ -1595,10 +1660,321 @@
     function baseFocusCapacity(iso) {
       const d = new Date(iso + "T00:00:00");
       const day = d.getDay();
-      if (day === 0) return 2;
-      if (day === 6) return 4;
-      if (day === 4) return 3;
-      return 5;
+      let base = 5;
+      if (day === 0) base = 2;
+      if (day === 6) base = 4;
+      if (day === 4) base = 3;
+
+      if (state.energyMode === "low") base = Math.max(1, Math.floor(base * 0.7));
+      if (state.energyMode === "high") base = Math.min(8, Math.ceil(base * 1.2));
+      return base;
+    }
+
+    function taskRiskScore(task) {
+      if (task.status === "Done") return 0;
+      const daysToDue = task.due ? daysBetween(todayISO(), task.due) : 30;
+      let risk = 0;
+      if (daysToDue <= 0) risk += 45;
+      else if (daysToDue <= 2) risk += 30;
+      else if (daysToDue <= 7) risk += 15;
+      if (task.priority === "Hoch") risk += 20;
+      if (Number(task.effort || 1) >= 4) risk += 12;
+      if (task.recoveryOf) risk += 8;
+      if (task.critical) risk += 25;
+      return Math.max(0, Math.min(100, risk));
+    }
+
+    function taskRiskLabel(score) {
+      if (score >= 60) return "Rot";
+      if (score >= 35) return "Gelb";
+      return "Gruen";
+    }
+
+    async function smartReplan() {
+      const today = todayISO();
+      const horizon = Array.from({ length: 7 }, (_, i) => plusDays(today, i));
+      let moved = 0;
+
+      const candidates = state.tasks
+        .filter((t) => t.status !== "Done")
+        .filter((t) => !t.due || t.due < today)
+        .sort((a, b) => {
+          const prio = { Hoch: 0, Mittel: 1, Niedrig: 2 };
+          return (prio[a.priority] || 2) - (prio[b.priority] || 2);
+        });
+
+      for (const task of candidates) {
+        const effort = Number(task.effort || 1);
+        let best = null;
+        let bestLoad = 999;
+
+        horizon.forEach((iso) => {
+          if ((task.area === "Praxisprojekt" || task.area === "Bachelorarbeit") && !isWeekdayISO(iso)) return;
+          const weekKey = currentWeekKey();
+          const plan = getWeekPlan(weekKey);
+          const load = getDayTaskLoad(plan, iso);
+          if ((load + effort) > HARD_MAX_FOCUS_HOURS_PER_DAY) return;
+          if (load < bestLoad) {
+            bestLoad = load;
+            best = iso;
+          }
+        });
+
+        if (!best) continue;
+        task.due = best;
+        if (!String(task.title).startsWith("[Replan] ")) task.title = "[Replan] " + task.title;
+        await put(stores.tasks, task);
+        moved += 1;
+      }
+
+      await loadState();
+      renderAll();
+      const status = document.getElementById("automationStatus");
+      if (status) status.textContent = `Smart Re-Plan: ${moved} Aufgaben verschoben.`;
+    }
+
+    function renderFocusTimerTaskSelect() {
+      const select = document.getElementById("focusTimerTask");
+      if (!select) return;
+      const current = state.focusTimer.taskId || "";
+      const tasks = state.tasks.filter((t) => t.status !== "Done");
+      select.innerHTML = '<option value="">Task waehlen</option>';
+      tasks.forEach((t) => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = `${t.title} (${t.area})`;
+        select.appendChild(opt);
+      });
+      select.value = current;
+    }
+
+    function formatTimer(sec) {
+      const s = Math.max(0, Number(sec || 0));
+      const h = String(Math.floor(s / 3600)).padStart(2, "0");
+      const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+      const x = String(Math.floor(s % 60)).padStart(2, "0");
+      return `${h}:${m}:${x}`;
+    }
+
+    function renderFocusTimerStatus() {
+      const node = document.getElementById("focusTimerStatus");
+      if (!node) return;
+      let sec = Number(state.focusTimer.elapsedSec || 0);
+      if (state.focusTimer.running && state.focusTimer.startedAt) {
+        sec = Math.floor((Date.now() - new Date(state.focusTimer.startedAt).getTime()) / 1000);
+      }
+      node.textContent = `Timer: ${formatTimer(sec)}${state.focusTimer.running ? " (laeuft)" : ""}`;
+    }
+
+    function startFocusTick() {
+      if (focusTimerTick) clearInterval(focusTimerTick);
+      focusTimerTick = setInterval(renderFocusTimerStatus, 1000);
+    }
+
+    async function startFocusTimer() {
+      const taskId = document.getElementById("focusTimerTask").value;
+      if (!taskId) return;
+      state.focusTimer = { running: true, taskId, startedAt: new Date().toISOString(), elapsedSec: 0 };
+      await persistFocusTimer();
+      renderFocusTimerStatus();
+      startFocusTick();
+    }
+
+    async function stopFocusTimer() {
+      if (!state.focusTimer.running || !state.focusTimer.taskId || !state.focusTimer.startedAt) return;
+      const sec = Math.floor((Date.now() - new Date(state.focusTimer.startedAt).getTime()) / 1000);
+      const minutes = Math.max(1, Math.round(sec / 60));
+      const task = state.tasks.find((t) => t.id === state.focusTimer.taskId);
+      if (task) {
+        task.trackedMinutes = Number(task.trackedMinutes || 0) + minutes;
+        await put(stores.tasks, task);
+      }
+      await put(stores.meta, {
+        id: "focus-log-" + Date.now(),
+        taskId: state.focusTimer.taskId,
+        minutes,
+        at: new Date().toISOString()
+      });
+      state.focusTimer = { running: false, taskId: "", startedAt: null, elapsedSec: 0 };
+      await persistFocusTimer();
+      await loadState();
+      renderAll();
+      if (focusTimerTick) clearInterval(focusTimerTick);
+    }
+
+    function getWeekRange() {
+      const dates = weekDates();
+      return {
+        start: dates[0].toISOString().slice(0, 10),
+        end: dates[6].toISOString().slice(0, 10)
+      };
+    }
+
+    function renderWeeklyBudgets() {
+      const list = document.getElementById("weeklyBudgetList");
+      if (!list) return;
+      list.innerHTML = "";
+      const range = getWeekRange();
+
+      Object.keys(state.weeklyBudgets).forEach((area) => {
+        const target = Number(state.weeklyBudgets[area] || 0);
+        const used = state.tasks
+          .filter((t) => t.area === area)
+          .filter((t) => t.due && t.due >= range.start && t.due <= range.end)
+          .reduce((sum, t) => sum + Number(t.effort || 0), 0);
+        const pct = target > 0 ? Math.min(100, Math.round((used / target) * 100)) : 0;
+        list.insertAdjacentHTML("beforeend", `
+          <div class="item">
+            <div class="row"><div class="title">${area}</div><div class="sub">${used}h / ${target}h</div></div>
+            <div class="progress"><span style="width:${pct}%;"></span></div>
+          </div>
+        `);
+      });
+      if (!Object.keys(state.weeklyBudgets).length) list.innerHTML = '<div class="sub">Keine Budgets hinterlegt.</div>';
+    }
+
+    async function saveBudget() {
+      const area = document.getElementById("inBudgetArea").value.trim();
+      const hours = Number(document.getElementById("inBudgetHours").value || 0);
+      if (!area || hours <= 0) return;
+      state.weeklyBudgets[area] = hours;
+      await persistWeeklyBudgets();
+      document.getElementById("inBudgetArea").value = "";
+      document.getElementById("inBudgetHours").value = "";
+      renderWeeklyBudgets();
+    }
+
+    async function saveEnergyMode() {
+      const mode = document.getElementById("inEnergyMode").value;
+      state.energyMode = mode;
+      await persistEnergyMode();
+      renderAll();
+    }
+
+    async function applyShiftScenario() {
+      const mode = document.getElementById("inShiftScenario").value;
+      const workBlocks = state.fixedSchedule.filter((x) => x.area === "Arbeit");
+      state.fixedSchedule = state.fixedSchedule.filter((x) => x.area !== "Arbeit");
+
+      if (mode === "base") {
+        state.fixedSchedule.push({ id: id(), title: "Arbeit", days: [2, 0], start: "17:00", end: "23:00", area: "Arbeit", priority: "Mittel" });
+      }
+      if (mode === "june-heavy") {
+        state.fixedSchedule.push({ id: id(), title: "Arbeit", days: [1, 2, 4, 0], start: "17:00", end: "23:00", area: "Arbeit", priority: "Mittel" });
+      }
+      if (mode === "off-week") {
+        state.fixedSchedule.push({ id: id(), title: "Arbeit", days: [2], start: "18:00", end: "22:00", area: "Arbeit", priority: "Mittel" });
+      }
+
+      if (!state.fixedSchedule.some((x) => x.area === "Arbeit")) {
+        workBlocks.forEach((x) => state.fixedSchedule.push(x));
+      }
+
+      await persistFixedSchedule();
+      await loadState();
+      renderAll();
+    }
+
+    function toICSDateTime(isoDate, hhmm) {
+      const [h, m] = (hhmm || "00:00").split(":").map((x) => Number(x));
+      const d = new Date(isoDate + "T00:00:00");
+      d.setHours(h || 0, m || 0, 0, 0);
+      const y = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, "0");
+      const da = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${y}${mo}${da}T${hh}${mm}00`;
+    }
+
+    function exportICS() {
+      const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Abel Life OS//DE"]; 
+      const dates = Array.from({ length: 35 }, (_, i) => plusDays(todayISO(), i));
+
+      state.meetings.forEach((m) => {
+        lines.push("BEGIN:VEVENT");
+        lines.push(`UID:${m.id}@abel-life-os`);
+        lines.push(`DTSTAMP:${toICSDateTime(todayISO(), "00:00")}`);
+        lines.push(`DTSTART:${toICSDateTime(m.date, m.start)}`);
+        lines.push(`DTEND:${toICSDateTime(m.date, m.end)}`);
+        lines.push(`SUMMARY:${m.title}`);
+        lines.push("END:VEVENT");
+      });
+
+      state.fixedSchedule.forEach((b) => {
+        dates.forEach((iso) => {
+          const day = new Date(iso + "T00:00:00").getDay();
+          if (!(b.days || []).includes(day)) return;
+          if (b.until && iso > b.until) return;
+          lines.push("BEGIN:VEVENT");
+          lines.push(`UID:${b.id}-${iso}@abel-life-os`);
+          lines.push(`DTSTAMP:${toICSDateTime(todayISO(), "00:00")}`);
+          lines.push(`DTSTART:${toICSDateTime(iso, b.start)}`);
+          lines.push(`DTEND:${toICSDateTime(iso, b.end)}`);
+          lines.push(`SUMMARY:${b.title}`);
+          lines.push("END:VEVENT");
+        });
+      });
+
+      lines.push("END:VCALENDAR");
+      const blob = new Blob([lines.join("\r\n")], { type: "text/calendar" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "abel-life-os.ics";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function buildWeeklyReviewDraft() {
+      const range = getWeekRange();
+      const thisWeek = state.tasks.filter((t) => t.due && t.due >= range.start && t.due <= range.end);
+      const done = thisWeek.filter((t) => t.status === "Done").length;
+      const open = thisWeek.filter((t) => t.status !== "Done").length;
+      const critical = thisWeek.filter((t) => t.critical && t.status !== "Done").map((t) => t.title).slice(0, 3);
+      const topNext = topFocusTasks(3).map((t) => `- ${t.title}`).join("\n");
+
+      document.getElementById("reviewGood").value = `Erledigt: ${done} Aufgaben. Fokus gehalten in Mathe/Bachelorarbeit.`;
+      document.getElementById("reviewFix").value = `Offen: ${open}. Kritisch: ${critical.join(", ") || "keine"}.`;
+      document.getElementById("reviewNext").value = topNext || "- Mathe 2 taeglich 3h\n- Praxisprojekt Fokusblock\n- BA Kapitelarbeit";
+    }
+
+    function exportMonthlyReportPdf() {
+      const base = monthBaseDate();
+      const y = base.getFullYear();
+      const m = base.getMonth();
+      const monthStart = new Date(y, m, 1).toISOString().slice(0, 10);
+      const monthEnd = new Date(y, m + 1, 0).toISOString().slice(0, 10);
+
+      const monthTasks = state.tasks.filter((t) => t.due && t.due >= monthStart && t.due <= monthEnd);
+      const done = monthTasks.filter((t) => t.status === "Done").length;
+      const open = monthTasks.filter((t) => t.status !== "Done").length;
+      const matheHours = monthTasks.filter((t) => t.area === "Mathe 2").reduce((s, t) => s + Number(t.effort || 0), 0);
+      const baHours = monthTasks.filter((t) => t.area === "Bachelorarbeit").reduce((s, t) => s + Number(t.effort || 0), 0);
+
+      const html = `
+        <html><head><title>Monatsbericht</title></head><body style="font-family:Arial,sans-serif;padding:24px;">
+        <h1>Monatsbericht Abel Life OS</h1>
+        <p>Monat: ${base.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</p>
+        <ul>
+          <li>Aufgaben erledigt: ${done}</li>
+          <li>Aufgaben offen: ${open}</li>
+          <li>Mathe Stunden geplant: ${matheHours}h</li>
+          <li>Bachelorarbeit Stunden geplant: ${baHours}h</li>
+        </ul>
+        <h2>Top offene Aufgaben</h2>
+        <ol>${topFocusTasks(8).map((t) => `<li>${t.title} (${t.area}, ${toDE(t.due)})</li>`).join("")}</ol>
+        <p>Hinweis: Im Druckdialog "Als PDF speichern" waehlen.</p>
+        </body></html>`;
+
+      const w = window.open("", "_blank");
+      if (!w) return;
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      w.print();
     }
 
     function eventsForDate(iso) {
@@ -1758,6 +2134,12 @@
           </div>
         `);
       });
+
+      renderWeeklyBudgets();
+      renderFocusTimerTaskSelect();
+      renderFocusTimerStatus();
+      const energyNode = document.getElementById("inEnergyMode");
+      if (energyNode) energyNode.value = state.energyMode || "normal";
     }
 
     function renderTodayPage() {
@@ -2107,10 +2489,14 @@
       rows
         .sort((a, b) => (a.due || "9999-12-31").localeCompare(b.due || "9999-12-31"))
         .forEach((t) => {
+          const risk = taskRiskScore(t);
+          const riskLabel = taskRiskLabel(risk);
+          const stage = t.area === "Fotografie" ? (t.photoStage || PHOTO_STAGES[0]) : "-";
           tbody.insertAdjacentHTML("beforeend", `
             <tr class="${t.critical ? "critical-row" : ""}">
               <td>
                 <div class="${t.critical ? "critical-title" : ""}">${t.title}</div>
+                <div class="sub">Tracking: ${Math.round(Number(t.trackedMinutes || 0))} min</div>
                 ${t.critical ? `<div class="sub">${t.criticalReason || "Kritische Eskalation aktiv"}</div>` : ""}
               </td>
               <td>${t.area}</td>
@@ -2122,8 +2508,13 @@
                 ${t.critical ? '<span class="badge critical-badge" style="margin-left:6px;">CRITICAL</span>' : ""}
               </td>
               <td>
+                <div class="sub">${stage}</div>
+                <div class="sub">Risiko: ${risk} (${riskLabel})</div>
+              </td>
+              <td>
                 <div class="action-group">
                   <button class="tiny" data-id="${t.id}" data-a="edit">Edit</button>
+                  ${t.area === "Fotografie" ? '<button class="tiny" data-id="' + t.id + '" data-a="photostage">Stage+</button>' : ""}
                   <button class="tiny ${t.status === "To Do" ? "on" : ""}" data-id="${t.id}" data-a="todo">ToDo</button>
                   <button class="tiny ${t.status === "Doing" ? "on" : ""}" data-id="${t.id}" data-a="doing">Doing</button>
                   <button class="tiny ${t.status === "Done" ? "on" : ""}" data-id="${t.id}" data-a="done">Done</button>
@@ -2135,7 +2526,7 @@
         });
 
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="sub">Keine Aufgaben fuer den aktuellen Filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="sub">Keine Aufgaben fuer den aktuellen Filter.</td></tr>';
       }
     }
 
@@ -2760,6 +3151,16 @@
         if (action === "doing") await updateTaskStatus(idVal, "Doing");
         if (action === "done") await updateTaskStatus(idVal, "Done");
         if (action === "edit") editTask(idVal);
+        if (action === "photostage") {
+          const t = state.tasks.find((x) => x.id === idVal);
+          if (t && t.area === "Fotografie") {
+            const idx = PHOTO_STAGES.indexOf(t.photoStage || PHOTO_STAGES[0]);
+            t.photoStage = PHOTO_STAGES[(idx + 1) % PHOTO_STAGES.length];
+            await put(stores.tasks, t);
+            await loadState();
+            renderAll();
+          }
+        }
         if (action === "delete") await deleteTask(idVal);
       });
 
@@ -2949,6 +3350,22 @@
       });
 
       document.getElementById("btnEnableNotify").addEventListener("click", enableNotifications);
+      document.getElementById("btnSaveEnergyMode").addEventListener("click", saveEnergyMode);
+      document.getElementById("btnSmartReplan").addEventListener("click", smartReplan);
+      document.getElementById("btnApplyShiftScenario").addEventListener("click", applyShiftScenario);
+      document.getElementById("btnExportICS").addEventListener("click", exportICS);
+      document.getElementById("btnSaveBudget").addEventListener("click", saveBudget);
+      document.getElementById("btnStartFocusTimer").addEventListener("click", startFocusTimer);
+      document.getElementById("btnStopFocusTimer").addEventListener("click", stopFocusTimer);
+      document.getElementById("focusTimerTask").addEventListener("change", async (e) => {
+        state.focusTimer.taskId = e.target.value;
+        await persistFocusTimer();
+      });
+      document.getElementById("btnAutofillWeeklyReview").addEventListener("click", () => {
+        buildWeeklyReviewDraft();
+        document.querySelector('[data-page="review"]').click();
+      });
+      document.getElementById("btnMonthlyReportPdf").addEventListener("click", exportMonthlyReportPdf);
 
       document.getElementById("btnAddMatheTopic").addEventListener("click", addMatheTopic);
       document.getElementById("matheTopicsList").addEventListener("click", async (e) => {
@@ -3033,8 +3450,17 @@
       await applyAutoRules();
       bindUI();
       renderAll();
+      if (new Date().getDay() === 0) {
+        const metaRows = await all(stores.meta);
+        const weekKey = "weekly-draft-" + getIsoWeekKey(new Date());
+        if (!metaRows.some((x) => x.id === weekKey)) {
+          buildWeeklyReviewDraft();
+          await put(stores.meta, { id: weekKey, at: new Date().toISOString() });
+        }
+      }
       maybeSendDailyReminder();
       await maybeSendMeetingReminder();
+      if (state.focusTimer.running) startFocusTick();
     }
 
     init().catch((err) => {
