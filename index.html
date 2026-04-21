@@ -309,6 +309,33 @@
       text-align: center;
     }
 
+    .legend-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .legend-pill {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 11px;
+      padding: 3px 8px;
+      color: #eaf4ff;
+    }
+
+    .chart-tooltip {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #d7e8f6;
+      border: 1px dashed #355670;
+      border-radius: 8px;
+      padding: 6px 8px;
+      background: rgba(7, 13, 19, 0.42);
+      min-height: 30px;
+    }
+
     .critical-title {
       color: #ffd7d7;
       font-weight: 700;
@@ -779,11 +806,13 @@
               <div class="title">Timer Tageschart (7 Tage)</div>
               <div class="bar-wrap" id="timerDayBars"></div>
               <div class="bar-labels" id="timerDayLabels"></div>
+              <div class="chart-tooltip" id="timerDayTooltip">Tippe oder hover auf einen Balken fuer exakte Minuten.</div>
             </div>
             <div class="chart-box">
               <div class="title">Timer Wochenchart (8 Wochen)</div>
               <div class="bar-wrap" id="timerWeekBars"></div>
               <div class="bar-labels" id="timerWeekLabels"></div>
+              <div class="chart-tooltip" id="timerWeekTooltip">Tippe oder hover auf einen Balken fuer exakte Minuten.</div>
             </div>
           </div>
         </article>
@@ -866,6 +895,14 @@
               <tr><th>Phase</th><th>Start</th><th>Ende</th><th>Status</th><th>Aktion</th></tr>
             </thead>
             <tbody id="roadmapAdminTable"></tbody>
+          </table>
+
+          <div style="margin-top:12px;" class="title">Foto-Templates (monatlich automatisch)</div>
+          <table>
+            <thead>
+              <tr><th>Titel</th><th>Aufwand</th><th>Tag im Monat</th><th>Prio</th><th>Monatlich</th><th>Aktion</th></tr>
+            </thead>
+            <tbody id="photoTemplateTable"></tbody>
           </table>
         </article>
       </div>
@@ -1033,6 +1070,11 @@
             </thead>
             <tbody id="taskTable"></tbody>
           </table>
+          <div class="legend-row">
+            <span class="legend-pill" style="background:hsla(120, 80%, 45%, 0.22);">Risiko 0-30 Gruen</span>
+            <span class="legend-pill" style="background:hsla(50, 80%, 45%, 0.22);">Risiko 31-59 Gelb</span>
+            <span class="legend-pill" style="background:hsla(0, 80%, 45%, 0.22);">Risiko 60+ Rot</span>
+          </div>
         </article>
       </div>
     </section>
@@ -1636,6 +1678,7 @@
 
       for (const ym of months) {
         for (const tpl of state.photoRecurringTemplates) {
+          if (tpl.enabled === false) continue;
           const key = `${ym}:${tpl.title}`;
           const exists = state.tasks.some((t) => t.recurringKey === key);
           if (exists) continue;
@@ -1977,7 +2020,9 @@
       const dayLabels = document.getElementById("timerDayLabels");
       const weekBars = document.getElementById("timerWeekBars");
       const weekLabels = document.getElementById("timerWeekLabels");
-      if (!dayBars || !dayLabels || !weekBars || !weekLabels) return;
+      const dayTip = document.getElementById("timerDayTooltip");
+      const weekTip = document.getElementById("timerWeekTooltip");
+      if (!dayBars || !dayLabels || !weekBars || !weekLabels || !dayTip || !weekTip) return;
 
       const dayKeys = Array.from({ length: 7 }, (_, idx) => plusDays(todayISO(), -(6 - idx)));
       const dayData = dayKeys.map((d) => {
@@ -1992,7 +2037,7 @@
       dayLabels.innerHTML = "";
       dayData.forEach((row) => {
         const h = Math.max(5, Math.round((row.minutes / maxDay) * 100));
-        dayBars.insertAdjacentHTML("beforeend", `<div class="bar-col" style="height:${h}%;" title="${toDE(row.key)}: ${row.minutes} min"></div>`);
+        dayBars.insertAdjacentHTML("beforeend", `<div class="bar-col" data-tip="${toDE(row.key)}: ${row.minutes} min" style="height:${h}%;" title="${toDE(row.key)}: ${row.minutes} min"></div>`);
         dayLabels.insertAdjacentHTML("beforeend", `<div>${new Date(row.key + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short" })}</div>`);
       });
 
@@ -2014,8 +2059,22 @@
       weekLabels.innerHTML = "";
       weekData.forEach((row) => {
         const h = Math.max(5, Math.round((row.minutes / maxWeek) * 100));
-        weekBars.insertAdjacentHTML("beforeend", `<div class="bar-col" style="height:${h}%;" title="KW ${getIsoWeekKey(new Date(row.monday + "T00:00:00"))}: ${row.minutes} min"></div>`);
+        weekBars.insertAdjacentHTML("beforeend", `<div class="bar-col" data-tip="KW ${getIsoWeekKey(new Date(row.monday + "T00:00:00"))}: ${row.minutes} min" style="height:${h}%;" title="KW ${getIsoWeekKey(new Date(row.monday + "T00:00:00"))}: ${row.minutes} min"></div>`);
         weekLabels.insertAdjacentHTML("beforeend", `<div>${getIsoWeekKey(new Date(row.monday + "T00:00:00")).slice(-2)}</div>`);
+      });
+
+      dayTip.textContent = "Tippe oder hover auf einen Balken fuer exakte Minuten.";
+      weekTip.textContent = "Tippe oder hover auf einen Balken fuer exakte Minuten.";
+
+      dayBars.querySelectorAll(".bar-col").forEach((bar) => {
+        const show = () => { dayTip.textContent = bar.dataset.tip || "-"; };
+        bar.addEventListener("mouseenter", show);
+        bar.addEventListener("click", show);
+      });
+      weekBars.querySelectorAll(".bar-col").forEach((bar) => {
+        const show = () => { weekTip.textContent = bar.dataset.tip || "-"; };
+        bar.addEventListener("mouseenter", show);
+        bar.addEventListener("click", show);
       });
     }
 
@@ -3108,7 +3167,8 @@
       const recurringTable = document.getElementById("recurringAdminTable");
       const meetingTable = document.getElementById("meetingAdminTable");
       const roadmapTable = document.getElementById("roadmapAdminTable");
-      if (!recurringTable || !meetingTable || !roadmapTable) return;
+      const photoTemplateTable = document.getElementById("photoTemplateTable");
+      if (!recurringTable || !meetingTable || !roadmapTable || !photoTemplateTable) return;
 
       recurringTable.innerHTML = "";
       state.fixedSchedule.forEach((b) => {
@@ -3172,6 +3232,26 @@
           `);
         });
       if (!state.roadmap.length) roadmapTable.innerHTML = '<tr><td colspan="5" class="sub">Keine Roadmap-Eintraege</td></tr>';
+
+      photoTemplateTable.innerHTML = "";
+      state.photoRecurringTemplates.forEach((tpl) => {
+        const enabled = tpl.enabled !== false;
+        photoTemplateTable.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>${tpl.title}</td>
+            <td>${Number(tpl.effort || 2)}h</td>
+            <td>${Number(tpl.dueDay || 20)}</td>
+            <td>${tpl.priority || "Mittel"}</td>
+            <td>${enabled ? "AN" : "AUS"}</td>
+            <td>
+              <div class="action-group">
+                <button class="tiny" data-photo-template-id="${tpl.id}" data-a="toggle">${enabled ? "Disable" : "Enable"}</button>
+              </div>
+            </td>
+          </tr>
+        `);
+      });
+      if (!state.photoRecurringTemplates.length) photoTemplateTable.innerHTML = '<tr><td colspan="6" class="sub">Keine Foto-Templates</td></tr>';
     }
 
     function clearRecurringForm() {
@@ -3635,6 +3715,19 @@
         const idVal = b.dataset.roadmapId;
         if (b.dataset.a === "edit") editRoadmap(idVal);
         if (b.dataset.a === "delete") await deleteRoadmap(idVal);
+      });
+
+      document.getElementById("photoTemplateTable").addEventListener("click", async (e) => {
+        const b = e.target.closest("button[data-photo-template-id]");
+        if (!b) return;
+        const idVal = b.dataset.photoTemplateId;
+        if (b.dataset.a !== "toggle") return;
+        const tpl = state.photoRecurringTemplates.find((x) => x.id === idVal);
+        if (!tpl) return;
+        tpl.enabled = !(tpl.enabled !== false);
+        await persistPhotoRecurringTemplates();
+        await applyAutoRules();
+        renderAll();
       });
 
       document.getElementById("btnResetAbelData").addEventListener("click", async () => {
